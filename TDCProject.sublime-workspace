@@ -1,0 +1,1211 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Qt",
+				"QtCore"
+			],
+			[
+				"QW",
+				"QWidget"
+			],
+			[
+				"po",
+				"possibleDevices"
+			],
+			[
+				"d",
+				"dframe"
+			],
+			[
+				"ch",
+				"ch2Entries"
+			],
+			[
+				"eventC",
+				"eventChannel"
+			],
+			[
+				"eve",
+				"eventChannels"
+			],
+			[
+				"trigger",
+				"triggerChannel"
+			],
+			[
+				"t",
+				"triggerTimes"
+			],
+			[
+				"dev",
+				"deviceCommunication"
+			],
+			[
+				"de",
+				"deviceCommunication"
+			],
+			[
+				"curr",
+				"currentData"
+			],
+			[
+				"old",
+				"oldRunsList"
+			],
+			[
+				"oldRun",
+				"oldRunsList"
+			],
+			[
+				"tM",
+				"tMinValue"
+			],
+			[
+				"tMa",
+				"tMaxValue"
+			],
+			[
+				"drop",
+				"dropEnd"
+			],
+			[
+				"read",
+				"readAndParseScan"
+			],
+			[
+				"sc",
+				"scanNum"
+			],
+			[
+				"inpla",
+				"inplace="
+			],
+			[
+				"tim",
+				"timeStamps"
+			],
+			[
+				"ev",
+				"eventData"
+			],
+			[
+				"rand",
+				"randn"
+			],
+			[
+				"pyr",
+				"pyramidCopy"
+			],
+			[
+				"pyra",
+				"pyramidReduce"
+			],
+			[
+				"pr",
+				"progeny"
+			],
+			[
+				"num",
+				"numProgeny"
+			],
+			[
+				"read_sq",
+				"read_sql_table"
+			],
+			[
+				"rea",
+				"read_timestamps_from_file_as_dict"
+			],
+			[
+				"sto",
+				"stop_continuous_stream_timestamps_to_file"
+			],
+			[
+				"accum",
+				"accumulated_timestamps_filename"
+			],
+			[
+				"t_",
+				"t_acqList"
+			],
+			[
+				"mem",
+				"memoSequence"
+			],
+			[
+				"count",
+				"countErrors"
+			],
+			[
+				"most",
+				"mostDivisibleI"
+			],
+			[
+				"nex",
+				"nextTerm"
+			],
+			[
+				"col",
+				"collatzLengths"
+			],
+			[
+				"co",
+				"collatzLengths"
+			],
+			[
+				"dt",
+				"dt1Array"
+			],
+			[
+				"memo",
+				"memoSequence"
+			],
+			[
+				"colla",
+				"collatzSequence"
+			],
+			[
+				"Ap12",
+				"Ap12Estimate"
+			],
+			[
+				"ar",
+				"arange"
+			],
+			[
+				"temp",
+				"tempRay"
+			],
+			[
+				"ma",
+				"maxSubString"
+			],
+			[
+				"Prime",
+				"primeList"
+			],
+			[
+				"prod",
+				"cumprod"
+			],
+			[
+				"re",
+				"reduceN"
+			],
+			[
+				"even",
+				"evenFibs"
+			],
+			[
+				"mult",
+				"mults3"
+			],
+			[
+				"Mults",
+				"mults5"
+			],
+			[
+				"mults",
+				"mults5"
+			],
+			[
+				"group",
+				"groupFrame"
+			],
+			[
+				"spP",
+				"spProp1"
+			],
+			[
+				"sp",
+				"spShift2"
+			],
+			[
+				"redo",
+				"redoFits"
+			],
+			[
+				"As12",
+				"As12Estimate"
+			],
+			[
+				"lin",
+				"linspace"
+			],
+			[
+				"colin",
+				"colinearRuns"
+			],
+			[
+				"Ap",
+				"Ap12Estimate"
+			],
+			[
+				"mas",
+				"massNumber"
+			],
+			[
+				"res",
+				"resultsDic"
+			],
+			[
+				"resul",
+				"resultsDic"
+			],
+			[
+				"fixed",
+				"fixed_spShift"
+			],
+			[
+				"fixe",
+				"fixed_spShift"
+			],
+			[
+				"fix",
+				"fixed_spShift"
+			],
+			[
+				"laser",
+				"laserFreq"
+			],
+			[
+				"sigm",
+				"sigmaInit"
+			],
+			[
+				"to",
+				"totalVoltage"
+			],
+			[
+				"r",
+				"relevantTransitions"
+			],
+			[
+				"parm",
+				"parmList"
+			],
+			[
+				"titl",
+				"titleList"
+			],
+			[
+				"weig",
+				"weightedMean"
+			],
+			[
+				"font",
+				"fontsize"
+			],
+			[
+				"wei",
+				"weightedMean"
+			],
+			[
+				"comp",
+				"compiledAnticolinearParmResults"
+			],
+			[
+				"prop",
+				"propErr"
+			],
+			[
+				"weighte",
+				"weightedMean"
+			],
+			[
+				"tit",
+				"titleString"
+			],
+			[
+				"anticolin",
+				"anticolinearCentroidGuess"
+			],
+			[
+				"red",
+				"redoFits"
+			],
+			[
+				"colinearRun",
+				"colinearRunsForDate"
+			],
+			[
+				"app",
+				"approxColinearFrequencyShift"
+			],
+			[
+				"e",
+				"eCorrections"
+			],
+			[
+				"eC",
+				"eCorrections"
+			],
+			[
+				"anti",
+				"anticolinearRuns"
+			],
+			[
+				"ac",
+				"acGuess"
+			],
+			[
+				"CgU",
+				"acGuess"
+			],
+			[
+				"tran",
+				"transitionString"
+			],
+			[
+				"eCor",
+				"eCorrectionsForRun"
+			],
+			[
+				"energyCorrections",
+				"energyCorrectionsForRun"
+			],
+			[
+				"energy",
+				"energyCorrectionsForDate"
+			],
+			[
+				"energyCo",
+				"energyCorrectionsForDate"
+			],
+			[
+				"cen",
+				"centroidGuess"
+			],
+			[
+				"centroi",
+				"centroidGuess"
+			],
+			[
+				"ene",
+				"energyCorrectionForRun"
+			],
+			[
+				"cor",
+				"correctedCentroidEstimate"
+			],
+			[
+				"tr",
+				"transitionString"
+			],
+			[
+				"colinear",
+				"colinearRuns"
+			],
+			[
+				"be",
+				"beamEnergyCorrectionForDate"
+			],
+			[
+				"date",
+				"datesForTransition"
+			],
+			[
+				"en",
+				"energyCorrectionFromFile"
+			],
+			[
+				"upd",
+				"updateBeamEnergyCorrections"
+			],
+			[
+				"ener",
+				"energyCorrection"
+			],
+			[
+				"com",
+				"compiledColinearParmResults"
+			],
+			[
+				"tra",
+				"transitionString"
+			],
+			[
+				"includ",
+				"includeBeamEnergyCorrection"
+			],
+			[
+				"i",
+				"includeBeamEnergyCorrection"
+			],
+			[
+				"cent",
+				"centroidEstimateList"
+			],
+			[
+				"eco",
+				"energyCorrectionList"
+			],
+			[
+				"off",
+				"offsetList"
+			],
+			[
+				"beam",
+				"beamEnergyCorrectionForDate"
+			],
+			[
+				"w",
+				"weightedStats"
+			],
+			[
+				"compiled",
+				"compiledColinearParmResults"
+			],
+			[
+				"laserF",
+				"laserFreqsAnti"
+			],
+			[
+				"uni",
+				"uniqueLaserFreqsCo"
+			],
+			[
+				"lase",
+				"laserFreqsCo"
+			],
+			[
+				"l",
+				"laserDic"
+			],
+			[
+				"hlin",
+				"axhline"
+			],
+			[
+				"erro",
+				"errorbar"
+			],
+			[
+				"freq",
+				"freqOffset"
+			],
+			[
+				"coli",
+				"colinearFreqs"
+			],
+			[
+				"cc",
+				"ccGuess"
+			],
+			[
+				"coline",
+				"colinearFreqs"
+			],
+			[
+				"logDi",
+				"logDirec"
+			],
+			[
+				"log",
+				"logDirectory"
+			],
+			[
+				"las",
+				"laserFreqDic"
+			],
+			[
+				"logF",
+				"logFileList"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "tdcExampleCode.py",
+			"settings":
+			{
+				"buffer_size": 4064,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "usb_counter_fpgaOld.py",
+			"settings":
+			{
+				"buffer_size": 21095,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "tdcExampleConstantReadout.py",
+			"settings":
+			{
+				"buffer_size": 2450,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "TDC_DAQGUI.py",
+			"settings":
+			{
+				"buffer_size": 9300,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "TDCutilities.py",
+			"settings":
+			{
+				"buffer_size": 6048,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/flaco/AppData/Local/Programs/Python/Python39/Lib/site-packages/S15lib/instrumentsBrinson/usb_counter_fpga.py",
+			"settings":
+			{
+				"buffer_size": 21356,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/Python/Python.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"space",
+				"Indentation: Convert to Spaces"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/TDCProject.sublime-project",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/AlAnalysisCode28Feb2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlAmbitious/BigSkyControllerAmbitious.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/tdcExampleCode.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/usb_counter_fpgaOld.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/tdcExampleConstantReadout.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/TDC_DAQGUI.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/TDCutilities.py",
+		"/C/Users/flaco/AppData/Local/Programs/Python/Python39/Lib/site-packages/S15lib/instrumentsBrinson/usb_counter_fpga.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlAmbitious/test.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlAmbitious/LaunchBigSkyFromOtherGui_Closer.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlAmbitious/LaunchBigSkyFromOtherGui.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlAmbitious/BigSkyMetaController.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlAmbitious/BigSkyControllerSingleLaser.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlMinimal/creatingTabs.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlMinimal/LaunchBigSkyFromOtherGui_Closer.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlMinimal/BigSkyControllerAmbitious3.py",
+		"/C/Users/flaco/OneDrive/Documents/cobra.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlMinimal/BigSkyControllerAmbitious2.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/BigSkyControlMinimal/LaunchBigSkyFromOtherGui.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/SillyPyQtProject/sillyPyQt6.py",
+		"/C/Users/flaco/OneDrive/Documents/noticeMeSympy.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/newdb2.db",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/plsWork.raw",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/timestamps.raw",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/scanTracker.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/testingTDC.db",
+		"/C/Users/flaco/OneDrive/Documents/ProjectEuler/ProjectEulerProblem67.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/EMAlabDAQ/TDC.pdf",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/sqLiteExampleCode.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/experimentingWithFixedSidePeaks.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/InvestigatingSidePeaks.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/InvestigatingSidePeaks_voltageSpace_independentSidePeaks.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/BasicEpics.py",
+		"/C/Users/flaco/OneDrive/Documents/ProjectEuler/ProjectEulerProblem25.py",
+		"/C/Users/flaco/AppData/Local/Temp/Temp1_TDC8HP_Python_2023-03-18.zip/TDC8HP_python_read_trigger_groups.py",
+		"/C/Users/flaco/AppData/Local/Temp/Temp1_TDC8HP_Python_2023-03-18.zip/Python_info_READ_ME.txt",
+		"/C/Users/flaco/AppData/Local/Temp/Temp1_TDC8HP_Python_2023-03-18.zip/TDC8HP_python_read_rates.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/newdb.db",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/newdb.db.raw",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/my-test.db",
+		"/C/Users/flaco/OneDrive/Documents/Research/tdc/tempFiletest.raw",
+		"/C/Users/flaco/OneDrive/Documents/ProjectEuler/ProjectEulerProblem48.py",
+		"/C/Users/flaco/AppData/Local/Programs/Python/Python39/Lib/site-packages/S15lib/instruments/timestamp7.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/DataAcquisitionTests/rydbergSpectroscopyDAQ_gettingSilly.py",
+		"/C/Users/flaco/AppData/Local/Programs/Python/Python39/Lib/site-packages/S15lib/instruments/__pycache__/timestamp7.cpython-39.pyc",
+		"/C/Users/flaco/AppData/Local/Programs/Python/Python39/Lib/site-packages/S15lib-0.2.0.dist-info/top_level.txt",
+		"/C/Users/flaco/OneDrive/Documents/my-test.db",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/RydbergAnalysisExample/RydbergAnalysisScript.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/RydbergDataAcquisition1Dec2022/rydbergSpectroscopyDAQ_1Dec2022.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/RydbergDataAcquisition1Dec2022/RydbergAnalysisScript.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/RydbergDataAcquisition1Dec2022/scan1/scan1taggerData.csv",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/RydbergDataAcquisition1Dec2022/scan1/scan1wavemeterData.csv",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/DataAcquisitionTests/rydbergSpectroscopyDAQ_analogGauge.py",
+		"/C/Users/flaco/OneDrive/Documents/ProjectEuler/ProjectEulerProblem14_StudyingRuntimeAdvantage.py",
+		"/C/Users/flaco/OneDrive/Documents/ProjectEuler/ProjectEulerProblem13.py",
+		"/C/Users/flaco/OneDrive/Documents/ProjectEuler/ProjectEulerProblem11.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/hyperfinePredictorGOOD.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14072/run14072fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14072/energyCorrected/run14072fit_report_energyCorrected.txt",
+		"/E/Python/Python39/NEWS.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/pyqtgraphTest.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14642/energyCorrected/run14642fit_report_energyCorrected.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14642/run14642fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P12-S12/mass27/run14537/run14537fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14601/energyCorrected/run14601fit_report_energyCorrected.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14595/energyCorrected/run14595fit_report_energyCorrected.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14624/spectralData.csv",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P32-S12/mass27/run14625/spectralData.csv",
+		"/C/Users/flaco/OneDrive/Desktop/somethingForBrooke.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/LaserFrequencyPredictor.py",
+		"/C/Users/flaco/OneDrive/Desktop/somethingForBrook.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/AlAnalysisCode26Feb2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P12-S12/mass27/run14515/run14515fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P12-S12/mass27/run14516/run14516fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P12-S12/energyCorrectionDic.pkl",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/P12-S12/mass27/run14519/run14519fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/InvestigatingSidePeaks_voltageSpace.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/ExtendingSidepeakResultsToAllTransitions.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/StableAluminumAnalysis/AlAnalysisCode26Feb2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/hyperfinePredictor18Jan2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/hyperfinePredictorGOOD.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/AlAnalysisCode25Feb2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/PrelimAnalysis_7Oct2022.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/PrelimAnalysisSep2.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/AlAnalysisCode25Feb2023a.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/hyperfinePredictor23Feb2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14198/energyCorrected/run14198fit_report_energyCorrected.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14175/run14175fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14178/run14178fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14104/run14104fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14138/run14138fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14187/run14187fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14161/run14161fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14166/run14166fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-S12/mass27/run14203/run14203fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run14003/run14003fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13999/run13999fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13994/run13994fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13994/spectralData.csv",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13993/spectralData.csv",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13993/run13993fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13957/run13957fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13960/run13960fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13910/run13910fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-D32/mass27/run13912/run13912fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D32/mass27/run14024/run14024fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D32/mass27/run14022/run14022fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D32/mass27/run14021/run14021fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D32/mass27/run14020/run14020fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D32/mass27/run14019/run14019fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D32/mass27/run14025/run14025fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/hyperfinePredictor24Jan2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/PrelimAnalysisOld.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D52/mass27/run14029/run14029fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D52/mass27/run14037/run14037fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P32-D52/mass27/run14035/run14035fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/AdamVernonAnalysis/Al_1_colla.csv",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/LoadAnalyzeRiseData18Jan2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/P12-S12/mass27/run14516/run14516fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/TestingHyperfineModelStreamliner/LoadAnalyzeRiseData18Jan2023.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/LoadAnalyzeRiseData28Nov2022.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/PreliminaryAnalysis/P12-S/mass27/run14528/run14528fit_report.txt",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/Al/ChargeRadiusExtraction/PredictingChargeRadii.py",
+		"/C/Users/flaco/OneDrive/Documents/Research/FRIB/November2022Trip/costCalculator.py",
+		"/C/Users/flaco/OneDrive - Massachusetts Institute of Technology/Trampax2Axial/PotentialAlongRadiusRF.csv",
+		"/C/Users/flaco/OneDrive/Documents/ShuffleBoard.py",
+		"/C/Users/flaco/OneDrive/Documents/cheatingAtCodenames.py"
+	],
+	"find":
+	{
+		"height": 28.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"enableTerminal",
+			"calib",
+			"terminalLineCurrently",
+			"terminalEnabled",
+			"dangerMode",
+			"serialConnected",
+			"proposed",
+			"self.qTriggerSetting",
+			"self.qTrigger",
+			"qTrigger",
+			"qSwitchStatus",
+			"qTriggerSetting",
+			"fLampVoltage",
+			"fLampEnergy",
+			"frequency",
+			"qSwitchStatus",
+			"shutterStatus",
+			"activeStatus",
+			"flashLampMode",
+			"qSwitchMode",
+			"ser",
+			"serialNum",
+			"QtBase",
+			"]\n",
+			"qPushB",
+			"currentData",
+			"fBins",
+			"fMax",
+			"fMin",
+			"tStamp",
+			"25",
+			"False",
+			"pyramid",
+			"line",
+			"01",
+			"TimeStampTDC1",
+			"TimeSta",
+			"])",
+			"eCorre",
+			", 0",
+			"np",
+			"print",
+			"rangle",
+			"|",
+			"{\\text{",
+			"ket",
+			"I",
+			"\\rangle",
+			"|",
+			"\\text",
+			" _{\\text{S}}",
+			"_L",
+			"\\text{I}",
+			"\\text{J}",
+			"\\text{L}",
+			"labelShift",
+			"line",
+			"hbar",
+			"hp",
+			"yVals",
+			"Day",
+			"Scans",
+			"freqOf",
+			"dropna",
+			"compiledParms",
+			"xMeanOld",
+			"min",
+			"LARD",
+			"test",
+			"word",
+			"init",
+			"runs",
+			"json",
+			"except",
+			"print",
+			"sound",
+			"sigmaIn",
+			"x",
+			"bins",
+			"vSteps",
+			"7",
+			"gamma",
+			"6",
+			"scl",
+			"param",
+			"multibin",
+			"dframe",
+			"df_scan",
+			"fug",
+			"# 1-D Scan",
+			"error",
+			"True",
+			"self.graph",
+			"peaksList",
+			"currDir",
+			"dir",
+			"write",
+			"​",
+			"update_fL",
+			"setFlash",
+			"fetch",
+			"calib",
+			"update",
+			"plot",
+			"qtCre",
+			"valueCh",
+			"spinB",
+			"update_fl",
+			"updateT",
+			"terminal",
+			"flashLampEn",
+			"terminal",
+			"flashLampEn",
+			"sp",
+			"flashLampEn",
+			"fLampEne",
+			"print",
+			"danger",
+			"temp",
+			"stop",
+			"singleP",
+			"shutterB",
+			"QswitchAc",
+			"window",
+			"wind",
+			"Server",
+			"e",
+			"confi"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"scrollbar_highlights": true,
+		"show_context": true,
+		"use_buffer2": true,
+		"use_gitignore": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "tdcExampleCode.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4064,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "usb_counter_fpgaOld.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21095,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "tdcExampleConstantReadout.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2450,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "TDC_DAQGUI.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9300,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "TDCutilities.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6048,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/C/Users/flaco/AppData/Local/Programs/Python/Python39/Lib/site-packages/S15lib/instrumentsBrinson/usb_counter_fpga.py",
+					"selected": true,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21356,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								58,
+								58
+							]
+						],
+						"settings":
+						{
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"stack_multiselect": false,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 28.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 290.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.mdpopups":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "TDCProject.sublime-project",
+	"replace":
+	{
+		"height": 52.8
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"C:\\Users\\flaco\\OneDrive\\Documents\\Research\\SublimeProjects\\BigSkyControllerAmbitious.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 187.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 592.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
