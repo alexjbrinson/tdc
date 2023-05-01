@@ -9,7 +9,6 @@ import os
 import multiprocessing
 import threading
 import serial
-from numba import njit
 
 def writeToDB(connection, runNum):
   #emulates the data format that I'm using to store actual TDC data, but this is just random data
@@ -45,11 +44,6 @@ def writeToDB2(connection, runNum):
     connection.commit()
     runningCondition=False
 
-@njit
-def timeStampConverter(triggerTimes, eventTimes):
-  pass
-
-#
 def readAndParseScan(dframe, dropEnd=True, triggerChannel=1):
   #from dataframe of (timestamps,channel,run) data, converts to relative times from trigger signal
   triggerTimes=np.array(dframe[dframe.channel==triggerChannel].tStamp)
@@ -62,23 +56,33 @@ def readAndParseScan(dframe, dropEnd=True, triggerChannel=1):
   allChannels=np.unique(dframe.channel); print('test:', allChannels)
   eventChannels = allChannels[allChannels!=triggerChannel]; print('test2:', eventChannels)
   nf=pd.DataFrame()
-  goodTimeStamps=[]
-  for eventChannel in eventChannels:
-    i=0; stopIndex=0
-    eventTimes=np.array(dframe[np.array(dframe.channel==eventChannel)].tStamp)
-    triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
-    trigTime=triggerTimes[i]
-    for j in range(len(eventTimes)):
-      if eventTimes[j]>triggerTimes[i+1]:
-        startIndex = stopIndex
-        stopIndex = j
-        goodTimeStamps+=list(eventTimes[startIndex:stopIndex]-triggerTimes[i])
-        while eventTimes[j]>triggerTimes[i+1]:
-          i+=1 #in case there are multiple triggers between events for some reason...
-
-    nf=pd.DataFrame({'tStamp':goodTimeStamps})
+  for i in range(len(triggerTimes)-1):
+    for eventChannel in eventChannels:
+      events=(dframe[np.array(dframe.channel==eventChannel)&np.array(dframe.tStamp>triggerTimes[i]) & np.array(dframe.tStamp<triggerTimes[i+1])]).copy()
+      events.tStamp-=triggerTimes[i]
+      nf=nf.append(events)
   return(nf)
-
+'''
+def readAndParseScan2(dframe, dropEnd=True, triggerChannel=1):
+  #from dataframe of (timestamps,channel,run) data, converts to relative times from trigger signal
+  triggerTimes=np.array(dframe[dframe.channel==triggerChannel].tStamp)
+  try: firstTriggerTime=triggerTimes[0]; lastTriggerTime=triggerTimes[-1]; #print('success?',triggerTimes)
+  except: print('whauua?', triggerTimes);# quit()
+  dframe.tStamp=dframe.tStamp.map(lambda v : v if v>=firstTriggerTime else float('NaN')); dframe.dropna(inplace=True) #this is how I'll avoid partial ToF spectra at the beginning of my data batch
+  if dropEnd:
+    dframe.tStamp=dframe.tStamp.map(lambda v : v if v<lastTriggerTime else float('NaN')); dframe.dropna(inplace=True) #this is how I'll avoid partial ToF spectra at the end of my data batch
+  else: triggerTimes=np.append(triggerTimes, np.max(dframe.tStamp)+1) #if we don't drop the end, I need to add a final artificial trigger time which is later than all other timestamps, just so the for loop below will run as intended.
+  allChannels=np.unique(dframe.channel); print('test:', allChannels)
+  eventChannels = allChannels[allChannels!=triggerChannel]; print('test2:', eventChannels)
+  nf=pd.DataFrame()
+  for eventChannel in eventChannels:
+    for i in range(len(triggerTimes)-1):
+      eventTime=
+      events=(dframe[np.array(dframe.channel==eventChannel)&np.array(dframe.tStamp>triggerTimes[i]) & np.array(dframe.tStamp<triggerTimes[i+1])]).copy()
+      events.tStamp-=triggerTimes[i]
+      nf=nf.append(events)
+  return(nf)
+'''
 if __name__ == "__main__":
   con= sl.connect('dummy.db')
   with con:
@@ -101,7 +105,6 @@ if __name__ == "__main__":
     totalFrame=totalFrame.append(readAndParseScan(tempFrame, dropEnd=False))
   #plt.hist(totalFrame.tStamp,bins=20)
   print(len(totalFrame))
-  print(totalFrame)
   heights, bins = np.histogram(totalFrame.tStamp, bins=200)
   plt.plot((bins[1:]+bins[:-1])/2, heights)
   t0=time.time()

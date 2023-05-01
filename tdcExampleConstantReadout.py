@@ -9,7 +9,7 @@ import TDCutilities as tdcu
 import sqlite3 as sl
 import pandas as pd
 
-dev = TimeStampTDC1('COM3')
+#dev = TimeStampTDC1('COM3')
 # print('successful connection to TDC device')
 # dev.level = dev.TTL_LEVELS #use ts.NIM_LEVELS for nim signals
 
@@ -65,7 +65,71 @@ quit()
 #   #dic=dev.read_timestamps_from_file_as_dict()
 # dev.stop_continuous_stream_timestamps_to_file()
 '''
-dic = dev.read_timestamps_from_file_as_dict(fname='newdb2.raw')
+def channel_to_pattern(channel):
+    return int(2 ** (channel - 1))
+
+def read_timestamps_bin(binary_stream):
+        """
+        Reads the timestamps accumulated in a binary sequence
+        Returns:
+            Tuple[List[float], List[str]]:
+                Returns the event times in ns and the corresponding event channel.
+                The channel are returned as string where a 1 indicates the
+                trigger channel.
+                For example an event in channel 2 would correspond to "0010".
+                Two coinciding events in channel 3 and 4 correspond to "1100"
+        """
+        bytes_hex = binary_stream[::-1].hex()
+        ts_word_list = [
+            int(bytes_hex[i : i + 8], 16) for i in range(0, len(bytes_hex), 8)
+        ][::-1]
+
+        ts_list = []
+        event_channel_list = []
+        periode_count = 0
+        periode_duration = 1 << 27
+        prev_ts = -1
+        for ts_word in ts_word_list:
+            time_stamp = ts_word >> 5
+            pattern = ts_word & 0x1F
+            if prev_ts != -1 and time_stamp < prev_ts:
+                periode_count += 1
+            #         print(periode_count)
+            prev_ts = time_stamp
+            if (pattern & 0x10) == 0:
+                ts_list.append(time_stamp + periode_duration * periode_count)
+                event_channel_list.append("{0:04b}".format(pattern & 0xF))
+
+        ts_list = np.array(ts_list) * 2
+        event_channel_list = event_channel_list
+        return ts_list, event_channel_list
+
+def read_timestamps_from_file(fname=None):
+  """
+  Reads the timestamps accumulated in a binary file
+  """
+  if fname==None: return()
+  with open(fname, "rb") as f:
+      lines = f.read()
+  f.close()
+  return read_timestamps_bin(lines)
+
+def read_timestamps_from_file_as_dict(fname=None):
+  """
+  Reads the timestamps accumulated in a binary file
+  Returns dictionary where timestamps['channel i'] is the timestamp array
+  in nsec for the ith channel
+  """
+  if fname==None: return()
+  timestamps = {}
+  (times, channels,) = (read_timestamps_from_file(fname=fname))  # channels may involve coincidence signatures such as '0101'
+  for channel in range(1, 5, 1):  # iterate through channel numbers 1, 2, 3, 4
+      timestamps["channel {}".format(channel)] = times[
+          [int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]
+      ]
+  return timestamps
+
+dic = read_timestamps_from_file_as_dict(fname='newdb2.raw')
 ch1Times=np.array(dic['channel 1'])
 ch2Times=np.array(dic['channel 2'])
 ch1Entries=[[t1, 1] for t1 in ch1Times]
@@ -77,6 +141,7 @@ t0=time.time()
 dframe2 = tdcu.readAndParseScan(dframe, dropEnd=True, triggerChannel=1)
 t1=time.time()
 print(dframe2)
+print("time elapsed:", t1-t0) #time elapsed: 11.502874851226807 , 1.4951014518737793, 2.0678484439849854
 
 plt.hist(dframe2.tStamp, bins=1000)
 plt.show()
