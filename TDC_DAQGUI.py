@@ -1,5 +1,5 @@
 import sqlite3 as sl
-from S15lib.instrumentsBrinson import TimeStampTDC1
+from tdcClass import TimeStampTDC1
 import TDCutilities as tdcu
 import sys
 import os

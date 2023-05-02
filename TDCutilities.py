@@ -1,6 +1,5 @@
 import sqlite3 as sl
 import numpy as np 
-from S15lib.instrumentsBrinson import TimeStampTDC1
 import time
 import datetime
 import pandas as pd
@@ -47,10 +46,36 @@ def writeToDB2(connection, runNum):
 
 @njit
 def timeStampConverter(triggerTimes, eventTimes):
-  pass
+  triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
+  i=0; stopIndex=0; goodTimeStamps=[1.]
+  for j in range(len(eventTimes)):
+    if eventTimes[j]>triggerTimes[i+1]:
+      startIndex = stopIndex
+      stopIndex = j
+      goodTimeStamps+=list(eventTimes[startIndex:stopIndex]-triggerTimes[i])
+      while eventTimes[j]>triggerTimes[i+1]:
+        i+=1 #in case there are multiple triggers between events for some reason...
+  return(goodTimeStamps[1:])
 
-#
-def readAndParseScan(dframe, dropEnd=True, triggerChannel=1):
+def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1):
+  triggerTimes=np.array(dic['channel '+str(triggerChannel)])
+  try: firstTriggerTime=triggerTimes[0]; lastTriggerTime=triggerTimes[-1]; #print('success?',triggerTimes)
+  except: print('whauua?', triggerTimes);# quit()
+  nf=pd.DataFrame()
+  for key in dic.keys():
+    i = int(key.strip('channel '))
+    if i == triggerChannel: pass
+    elif len(dic[key])>0:
+      eventTimes=np.array(dic[key])
+      eventTimes=eventTimes[eventTimes>=firstTriggerTime]
+      if dropEnd:eventTimes=eventTimes[eventTimes<lastTriggerTime]
+      goodTimeStamps=timeStampConverter(triggerTimes, eventTimes)
+      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps), 'run':run*np.ones_like(goodTimeStamps)}))
+      #triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
+      
+  return(nf)
+
+'''def readAndParseScan(dframe, dropEnd=True, triggerChannel=1):
   #from dataframe of (timestamps,channel,run) data, converts to relative times from trigger signal
   triggerTimes=np.array(dframe[dframe.channel==triggerChannel].tStamp)
   try: firstTriggerTime=triggerTimes[0]; lastTriggerTime=triggerTimes[-1]; #print('success?',triggerTimes)
@@ -62,22 +87,76 @@ def readAndParseScan(dframe, dropEnd=True, triggerChannel=1):
   allChannels=np.unique(dframe.channel); print('test:', allChannels)
   eventChannels = allChannels[allChannels!=triggerChannel]; print('test2:', eventChannels)
   nf=pd.DataFrame()
-  goodTimeStamps=[]
   for eventChannel in eventChannels:
-    i=0; stopIndex=0
     eventTimes=np.array(dframe[np.array(dframe.channel==eventChannel)].tStamp)
-    triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
-    trigTime=triggerTimes[i]
-    for j in range(len(eventTimes)):
-      if eventTimes[j]>triggerTimes[i+1]:
-        startIndex = stopIndex
-        stopIndex = j
-        goodTimeStamps+=list(eventTimes[startIndex:stopIndex]-triggerTimes[i])
-        while eventTimes[j]>triggerTimes[i+1]:
-          i+=1 #in case there are multiple triggers between events for some reason...
-
+    #triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
+    goodTimeStamps=timeStampConverter(triggerTimes, eventTimes)
     nf=pd.DataFrame({'tStamp':goodTimeStamps})
-  return(nf)
+  return(nf)'''
+
+def channel_to_pattern(channel):
+    return int(2 ** (channel - 1))
+
+def read_timestamps_bin(binary_stream):
+        """
+        Reads the timestamps accumulated in a binary sequence
+        Returns:
+            Tuple[List[float], List[str]]:
+                Returns the event times in ns and the corresponding event channel.
+                The channel are returned as string where a 1 indicates the
+                trigger channel.
+                For example an event in channel 2 would correspond to "0010".
+                Two coinciding events in channel 3 and 4 correspond to "1100"
+        """
+        bytes_hex = binary_stream[::-1].hex()
+        ts_word_list = [
+            int(bytes_hex[i : i + 8], 16) for i in range(0, len(bytes_hex), 8)
+        ][::-1]
+
+        ts_list = []
+        event_channel_list = []
+        periode_count = 0
+        periode_duration = 1 << 27
+        prev_ts = -1
+        for ts_word in ts_word_list:
+            time_stamp = ts_word >> 5
+            pattern = ts_word & 0x1F
+            if prev_ts != -1 and time_stamp < prev_ts:
+                periode_count += 1
+            #         print(periode_count)
+            prev_ts = time_stamp
+            if (pattern & 0x10) == 0:
+                ts_list.append(time_stamp + periode_duration * periode_count)
+                event_channel_list.append("{0:04b}".format(pattern & 0xF))
+
+        ts_list = np.array(ts_list) * 2
+        event_channel_list = event_channel_list
+        return ts_list, event_channel_list
+
+def read_timestamps_from_file(fname=None):
+  """
+  Reads the timestamps accumulated in a binary file
+  """
+  if fname==None: return()
+  with open(fname, "rb") as f:
+      lines = f.read()
+  f.close()
+  return read_timestamps_bin(lines)
+
+def read_timestamps_from_file_as_dict(fname=None):
+  """
+  Reads the timestamps accumulated in a binary file
+  Returns dictionary where timestamps['channel i'] is the timestamp array
+  in nsec for the ith channel
+  """
+  if fname==None: return()
+  timestamps = {}
+  (times, channels,) = (read_timestamps_from_file(fname=fname))  # channels may involve coincidence signatures such as '0101'
+  for channel in range(1, 5, 1):  # iterate through channel numbers 1, 2, 3, 4
+      timestamps["channel {}".format(channel)] = times[
+          [int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]
+      ]
+  return timestamps
 
 if __name__ == "__main__":
   con= sl.connect('dummy.db')
