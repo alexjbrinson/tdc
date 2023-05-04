@@ -26,7 +26,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     QtWidgets.QMainWindow.__init__(self)
     Ui_MainWindow.__init__(self)
     self.setupUi(self)
-    self.dbName='testingTDC.db' #TODO: change this
+    self.dbName='newdb3.db' #TODO: change this
     self.comPort='COM3' #TODO: Automate this
     self.connection = sl.connect(self.dbName)
 
@@ -145,7 +145,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     if success:
       self.oldData=pd.DataFrame()
       for run in self.oldRuns:
-        self.oldData=self.oldData.append(tdcu.readAndParseScan(self.connection, runNum=run, dropEnd=False)) #TODO: set dropEnd=True once I start working with real data
+        self.oldData=self.oldData.append(pd.read_sql_query("SELECT * from TDC WHERE run="+str(run), self.connection))
+      print('test oldData:\n', self.oldData)
       self.updatePlotTof2()
 
   def endScan(self):

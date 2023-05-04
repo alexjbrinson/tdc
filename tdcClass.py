@@ -395,12 +395,6 @@ class TimeStampTDC1(object):
         rawFrame=pd.DataFrame()#TODO'''
         self.cleanDB = sl.connect(self.cleanDBname)
         timeStampsDic=self.read_timestamps_from_file_as_dict(self.accumulated_timestamps_filename)
-        '''with self.cleanDB:
-            self.cleanDB.execute("""
-            CREATE TABLE IF NOT EXISTS TDC (
-                tStamp INTEGER NOT NULL PRIMARY KEY,
-                channel INTEGER,
-                run INTEGER);""")'''
         
         cleanFrame=tdcu.readAndParseScan(timeStampsDic, dropEnd=True, triggerChannel=1, run=self.run)
         cleanFrame.to_sql('TDC', self.cleanDB, if_exists='append')

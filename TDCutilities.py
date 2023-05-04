@@ -47,15 +47,19 @@ def writeToDB2(connection, runNum):
 @njit
 def timeStampConverter(triggerTimes, eventTimes):
   triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
-  i=0; stopIndex=0; goodTimeStamps=[1.]
+  i=0; stopIndex=0; goodTimeStamps=[1.]; triggerGroups=[1]
   for j in range(len(eventTimes)):
     if eventTimes[j]>triggerTimes[i+1]:
       startIndex = stopIndex
       stopIndex = j
       goodTimeStamps+=list(eventTimes[startIndex:stopIndex]-triggerTimes[i])
+      triggerGroups+=[i]*(stopIndex-startIndex)
       while eventTimes[j]>triggerTimes[i+1]:
         i+=1 #in case there are multiple triggers between events for some reason...
-  return(goodTimeStamps[1:])
+  #since the last trigger group is (by construction) before the final trigger time, it won't be appended by my if condition. Need to do it manually here:
+  goodTimeStamps+=list(eventTimes[stopIndex:]-triggerTimes[i])
+  triggerGroups+=[i]*(len(eventTimes)-stopIndex)
+  return(goodTimeStamps[1:], triggerGroups[1:])
 
 def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1):
   triggerTimes=np.array(dic['channel '+str(triggerChannel)])
@@ -69,9 +73,8 @@ def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1):
       eventTimes=np.array(dic[key])
       eventTimes=eventTimes[eventTimes>=firstTriggerTime]
       if dropEnd:eventTimes=eventTimes[eventTimes<lastTriggerTime]
-      goodTimeStamps=timeStampConverter(triggerTimes, eventTimes)
-      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps), 'run':run*np.ones_like(goodTimeStamps)}))
-      #triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
+      goodTimeStamps, triggerGroups=timeStampConverter(triggerTimes, eventTimes)
+      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps), 'run':run*np.ones_like(goodTimeStamps),'triggerGroup':triggerGroups, 'global time':eventTimes}))#
       
   return(nf)
 
