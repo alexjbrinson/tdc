@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import TDCutilities as tdcu
 import sqlite3 as sl
 import pandas as pd
+import pickle
 
-
-
+'''
 t0=time.time()
 dic = tdcu.read_timestamps_from_file_as_dict(fname='newdb2.raw')
 t1=time.time()
@@ -21,30 +21,51 @@ print(dframe2)
 print("time elapsed on file load:", t1-t0) #time elapsed: 11.502874851226807 , 1.4951014518737793, 2.0678484439849854
 print("time elapsed the first function call:", t2-t1)
 print("time elapsed the second function call:", t3-t2)
-#plt.hist(dframe.tStamp, bins=1000)
-#plt.show()
+plt.hist(dframe.tStamp, bins=1000)
+plt.show()'''
 
-'''
+
 rawDataFile='currentData.raw'
-dbname='newdb3.db'
+dbname='newdb.db'
 run=0
+liveDataFile = "iTurnedMyselfIntoAPickle.pkl"
 
 #Collect data with this stuff
-# dev = TimeStampTDC1('COM3')
-# print('successful connection to TDC device')
-# dev.level = dev.TTL_LEVELS #use ts.NIM_LEVELS for nim signals
-# dev.start_continuous_stream_timestamps_to_file(rawDataFile, dbname, run)
-# for i in range(10):
-#   print('sleeping',i)
-#   time.sleep(5)#(.5)
-# dev.stop_continuous_stream_timestamps_to_file()
+dev = TimeStampTDC1('COM3')
+print('successful connection to TDC device')
+dev.level = dev.TTL_LEVELS #use ts.NIM_LEVELS for nim signals
+dev.clock='2'#force internal clock
+time.sleep(1)
+dev.start_continuous_stream_timestamps_to_file(rawDataFile, dbname, run, binRay=[0,2.5E6,10000], pickleDic=liveDataFile)
+for i in range(10):
+  print('sleeping',i)
+  time.sleep(.5)#(.5)
+dev.stop_continuous_stream_timestamps_to_file()
 
-t0=time.time()
-con=sl.connect(dbname)
-# dframe=pd.read_sql_query("SELECT * from TDC", con)
-dframe=pd.read_sql_query("SELECT * from TDC WHERE run="+str(run), con)
+# t0=time.time()
+# con=sl.connect(dbname)
+# dframe=pd.read_sql_query("SELECT * from TDC WHERE run="+str(run)+" AND channel ="+str(2), con)
 t1=time.time()
-print(dframe)
-plt.hist(dframe.tStamp, bins=1000)
-print('time to load parsed database:', t1-t0)
-plt.show()'''
+#print(dframe)
+#plt.hist(dframe.tStamp, bins=1000)
+#print('time to load parsed database:', t1-t0)
+
+#print(time.time())
+
+#print(np.array(dframe["globalTime"])[-1])
+#plt.plot(dev.allTriggers)
+#dic = tdcu.read_timestamps_from_file_as_dict(fname=rawDataFile)
+#plt.plot(dic["channel 1"])
+
+
+with open(liveDataFile,'rb') as file:
+  resultFromLiveBinning=pickle.load(file)
+  file.close()
+t2=time.time()
+print("time to load pickle:",t2-t1)
+
+
+plt.plot(resultFromLiveBinning['channel 2'])
+plt.show()
+#320364612
+#171934980

@@ -44,7 +44,7 @@ def writeToDB2(connection, runNum):
     connection.commit()
     runningCondition=False
 
-@njit
+#@njit #why does this break when I call it from the histogram method in tdcClass.py? #TODO: investigate?
 def timeStampConverter(triggerTimes, eventTimes):
   triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
   i=0; stopIndex=0; goodTimeStamps=[1.]; triggerGroups=[1]
@@ -61,7 +61,7 @@ def timeStampConverter(triggerTimes, eventTimes):
   triggerGroups+=[i]*(len(eventTimes)-stopIndex)
   return(goodTimeStamps[1:], triggerGroups[1:])
 
-def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1):
+def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1, t0=0):
   triggerTimes=np.array(dic['channel '+str(triggerChannel)])
   try: firstTriggerTime=triggerTimes[0]; lastTriggerTime=triggerTimes[-1]; #print('success?',triggerTimes)
   except: print('whauua?', triggerTimes);# quit()
@@ -71,10 +71,10 @@ def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1):
     if i == triggerChannel: pass
     elif len(dic[key])>0:
       eventTimes=np.array(dic[key])
-      eventTimes=eventTimes[eventTimes>=firstTriggerTime]
+      eventTimes=eventTimes[eventTimes>=firstTriggerTime] #dropping data before first trigger #TODO: do this in timeStampConverter() without slicing
       if dropEnd:eventTimes=eventTimes[eventTimes<lastTriggerTime]
       goodTimeStamps, triggerGroups=timeStampConverter(triggerTimes, eventTimes)
-      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps), 'run':run*np.ones_like(goodTimeStamps),'triggerGroup':triggerGroups, 'global time':eventTimes}))#
+      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps,dtype=int), 'run':run*np.ones_like(goodTimeStamps,dtype=int),'triggerGroup':triggerGroups, 'globalTime':t0+(eventTimes*1E-9)}))#
       
   return(nf)
 

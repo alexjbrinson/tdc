@@ -13,6 +13,7 @@ import socket
 import pandas as pd
 import math
 from datetime import datetime
+import pickle
 
 #np.set_printoptions(threshold=np.inf)
 # TODO: allow for loading of old datasets to overlay on histogram
@@ -26,9 +27,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     QtWidgets.QMainWindow.__init__(self)
     Ui_MainWindow.__init__(self)
     self.setupUi(self)
-    self.dbName='newdb3.db' #TODO: change this
+    self.dbName='newdb4.db' #TODO: change this
+    self.rawDataFile='currentData.raw'
+    self.liveDataFile="iTurnedMyselfIntoAPickle.pkl"
     self.comPort='COM3' #TODO: Automate this
     self.connection = sl.connect(self.dbName)
+    self.realData=False; self.hasOldData=False
 
     try:
       self.device = TimeStampTDC1(self.comPort)
@@ -61,7 +65,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.scanToggler.setText('start run '+str(self.currentRun))
     self.scanToggler.clicked.connect(self.beginScan)
 
-    self.tMinValue=0; self.tMaxValue=50000000; self.tBinsValue=128 #some values to initialize, and then will update based on the value in self.binsLineEdit
+    self.tMinValue=0; self.tMaxValue=3E6; self.tBinsValue=1000 #some values to initialize, and then will update based on the value in self.binsLineEdit
     self.tMinLineEdit.setText(str(self.tMinValue)); self.tMaxLineEdit.setText(str(self.tMaxValue)); self.tBinsLineEdit.setText(str(self.tBinsValue))
     self.tMinLineEdit.returnPressed.connect(self.confirmMinTimeBin); self.tMaxLineEdit.returnPressed.connect(self.confirmMaxTimeBin); self.tBinsLineEdit.returnPressed.connect(self.confirmTimeBins)
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('s'));self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('s')); self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))    
@@ -92,6 +96,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.timer.start()'''
 
   def confirmMinTimeBin(self):
+    if self.scanToggled: pass
     #updates self.fMinValue, but only if it's reasonable
     try:
       tProposed = int(self.tMinLineEdit.text())
@@ -102,10 +107,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('units'))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue)
     self.yToF = [-1 for _ in range(self.tBinsValue)]
-    self.updatePlotTof()
-    self.updatePlotTof2()
+    if self.realData: self.updatePlotTof()
+    if self.hasOldData: self.updatePlotTof2()
 
   def confirmMaxTimeBin(self):
+    if self.scanToggled: pass
     #updates self.fMaxValue, but only if it's reasonable
     try:
       tProposed = int(self.tMaxLineEdit.text())
@@ -116,10 +122,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('units'))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue)
     self.yToF = [-1 for _ in range(self.tBinsValue)]
-    self.updatePlotTof()
-    self.updatePlotTof2()
+    if self.realData: self.updatePlotTof()
+    if self.hasOldData: self.updatePlotTof2()
 
   def confirmTimeBins(self):
+    if self.scanToggled: pass
     #updates self.fBinsValue, but only if it's reasonable
     try:
       binsProposed = int(self.tBinsLineEdit.text())
@@ -128,10 +135,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     except: print("please enter an integer value."); binsProposed = self.tBinsValue #if line entry is trash, then set proposed freq to old value
     self.tBinsValue=binsProposed; self.tBinsLineEdit.setText(str(self.tBinsValue))
     self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))
-    self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue)
+    self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue)#+1)
     self.yToF = [-1 for _ in range(self.tBinsValue)]
-    self.updatePlotTof()
-    self.updatePlotTof2()
+    if self.realData: self.updatePlotTof()
+    if self.hasOldData: self.updatePlotTof2()
 
   def loadOldRuns(self):
     oldRunsString=self.loadOldRunsLineEdit.text()
@@ -147,11 +154,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
       for run in self.oldRuns:
         self.oldData=self.oldData.append(pd.read_sql_query("SELECT * from TDC WHERE run="+str(run), self.connection))
       print('test oldData:\n', self.oldData)
+      self.hasOldData = True
       self.updatePlotTof2()
 
   def endScan(self):
     if self.deviceCommunication:
-      self.device.stop_continuous_stream_timestamps_to_database()
+      self.device.stop_continuous_stream_timestamps_to_file()
     self.timer.stop()
     self.scanToggler.clicked.disconnect(self.endScan)
     self.scanToggled=False
@@ -174,8 +182,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.scanToggler.setText('stop run '+str(self.currentRun))
 
     if self.deviceCommunication:
-      self.device.start_continuous_stream_timestamps_to_database(self.dbName, self.currentRun)
-    
+      self.device.start_continuous_stream_timestamps_to_file(self.rawDataFile, self.dbName, self.currentRun, binRay=[self.tMinValue,self.tMaxValue,self.tBinsValue], pickleDic=self.liveDataFile)
+    self.realData = True
     self.timer.timeout.connect(self.updateEverything)
     self.timer.start()
 
@@ -183,12 +191,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     if not self.scanToggled:
       print('investigate this!'); quit()
     #time.sleep(self.sleepyTime)
-    self.currentData=tdcu.readAndParseScan(self.connection, runNum=self.currentRun, dropEnd=False)
+    with open(self.liveDataFile, 'rb') as file:
+      self.currentData=pickle.load(file)
     self.updatePlotTof()
 
   def updatePlotTof(self):
-    self.yToF, bins =np.histogram(self.currentData.tStamp,bins=self.xToF)
-    self.data_lineToF.setData( (bins[1:]+bins[:-1])/2, self.yToF, pen=self.pen1)
+    self.yToF = self.currentData["channel 2"] #TODO: Eventually allow to switch channels
+    self.data_lineToF.setData(self.xToF, self.yToF, pen=self.pen1)
 
   def updatePlotTof2(self):
     self.yToF2, bins =np.histogram(np.array(self.oldData.tStamp), bins=self.xToF)
