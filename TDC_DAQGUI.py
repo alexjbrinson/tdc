@@ -27,9 +27,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     QtWidgets.QMainWindow.__init__(self)
     Ui_MainWindow.__init__(self)
     self.setupUi(self)
-    self.dbName='newdb4.db' #TODO: change this
+    self.dbName='allData.db' #TODO: change this
     self.rawDataFile='currentData.raw'
     self.liveDataFile="iTurnedMyselfIntoAPickle.pkl"
+    self.scanCountingFile = 'scanTracker.txt'
     self.comPort='COM3' #TODO: Automate this
     self.connection = sl.connect(self.dbName)
     self.realData=False; self.hasOldData=False
@@ -47,13 +48,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.scanToggled=False
     self.previousScans=[]
     try: 
-      with open('scanTracker.txt','r') as f:
+      with open(self.scanCountingFile,'r') as f:
         self.currentRun=int(f.readline())+1
         f.close()
         print("successfully read run number")
     except:
       self.currentRun=0
-      with open('scanTracker.txt','w') as f:
+      with open(self.scanCountingFile,'w') as f:
         f.write(str(self.currentRun)); f.close()
 
     
@@ -135,7 +136,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     except: print("please enter an integer value."); binsProposed = self.tBinsValue #if line entry is trash, then set proposed freq to old value
     self.tBinsValue=binsProposed; self.tBinsLineEdit.setText(str(self.tBinsValue))
     self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))
-    self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue)#+1)
+    self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)
     self.yToF = [-1 for _ in range(self.tBinsValue)]
     if self.realData: self.updatePlotTof()
     if self.hasOldData: self.updatePlotTof2()
@@ -213,3 +214,6 @@ if __name__ == "__main__":
   window = MyApp()
   window.show()
   sys.exit(app.exec_())
+
+#TODO: understand occasional (and seemingly inconsequential) error on pickle load call:
+#EOFError: Ran out of input

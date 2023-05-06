@@ -46,8 +46,8 @@ def writeToDB2(connection, runNum):
 
 #@njit #why does this break when I call it from the histogram method in tdcClass.py? #TODO: investigate?
 def timeStampConverter(triggerTimes, eventTimes):
-  triggerTimes=np.append(triggerTimes,1+np.max(eventTimes)) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
-  i=0; stopIndex=0; goodTimeStamps=[1.]; triggerGroups=[1]
+  triggerTimes=np.append(triggerTimes,1+eventTimes[-1]) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
+  i=0; stopIndex=0; goodTimeStamps=[1.]; triggerGroups=[0]
   for j in range(len(eventTimes)):
     if eventTimes[j]>triggerTimes[i+1]:
       startIndex = stopIndex
@@ -74,8 +74,8 @@ def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1, t0=0):
       eventTimes=eventTimes[eventTimes>=firstTriggerTime] #dropping data before first trigger #TODO: do this in timeStampConverter() without slicing
       if dropEnd:eventTimes=eventTimes[eventTimes<lastTriggerTime]
       goodTimeStamps, triggerGroups=timeStampConverter(triggerTimes, eventTimes)
-      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps,dtype=int), 'run':run*np.ones_like(goodTimeStamps,dtype=int),'triggerGroup':triggerGroups, 'globalTime':t0+(eventTimes*1E-9)}))#
-      
+      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps,dtype=int),
+       'run':run*np.ones_like(goodTimeStamps,dtype=int),'triggerGroup':triggerGroups, 'globalTime':t0+(eventTimes*1E-9)}))
   return(nf)
 
 '''def readAndParseScan(dframe, dropEnd=True, triggerChannel=1):
@@ -132,9 +132,9 @@ def read_timestamps_bin(binary_stream):
                 ts_list.append(time_stamp + periode_duration * periode_count)
                 event_channel_list.append("{0:04b}".format(pattern & 0xF))
 
-        ts_list = np.array(ts_list) * 2
+        ts_list2 = np.array(ts_list, dtype='int64') * 2
         event_channel_list = event_channel_list
-        return ts_list, event_channel_list
+        return ts_list2, event_channel_list
 
 def read_timestamps_from_file(fname=None):
   """
