@@ -25,8 +25,8 @@ plt.show()'''
 
 
 rawDataFile='currentData.raw'
-dbname='testdb.db'
-run=0
+dbname='allData.db'
+run=9
 liveDataFile = "iTurnedMyselfIntoAPickle.pkl"
 
 '''dic = tdcu.read_timestamps_from_file_as_dict(fname=rawDataFile)
@@ -54,9 +54,10 @@ cleanFrame=tdcu.readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1, t0
 
 t0=time.time()
 con=sl.connect(dbname)
-dframe=pd.read_sql_query("SELECT * from TDC WHERE run="+str(run)+" AND channel ="+str(2), con)
+dframe=pd.read_sql_query("SELECT * from TDC", con)# WHERE run="+str(run)+" AND channel ="+str(2), con)
 t1=time.time()
 print(dframe)
+quit()
 #plt.hist(dframe.tStamp, bins=1000)
 print('time to load parsed database:', t1-t0)
 
