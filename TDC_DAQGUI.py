@@ -215,5 +215,4 @@ if __name__ == "__main__":
   window.show()
   sys.exit(app.exec_())
 
-#TODO: understand occasional (and seemingly inconsequential) error on pickle load call:
-#EOFError: Ran out of input
+#TODO: understand occasional (and seemingly inconsequential) error on pickle load call: "EOFError: Ran out of input"
