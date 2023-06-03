@@ -44,6 +44,14 @@ def writeToDB2(connection, runNum):
     connection.commit()
     runningCondition=False
 
+def channel_to_binString(channel):
+  #pretty silly, but effective
+  if channel==1:   return('0001')
+  elif channel==2: return('0010')
+  elif channel==3: return('0100')
+  elif channel==4: return('1000')
+  else: return(-1)
+
 #@njit #why does this break when I call it from the histogram method in tdcClass.py? #TODO: investigate?
 def timeStampConverter(triggerTimes, eventTimes):
   triggerTimes=np.append(triggerTimes,1+eventTimes[-1]) #adding a fake trigger that occurs after last event, just so I don't run out bounds on my index
@@ -133,7 +141,7 @@ def read_timestamps_bin(binary_stream):
                 event_channel_list.append("{0:04b}".format(pattern & 0xF))
 
         ts_list2 = np.array(ts_list, dtype='int64') * 2
-        event_channel_list = event_channel_list
+        event_channel_list = np.array(event_channel_list)
         return ts_list2, event_channel_list
 
 def read_timestamps_from_file(fname=None):
@@ -155,10 +163,7 @@ def read_timestamps_from_file_as_dict(fname=None):
   if fname==None: return()
   timestamps = {}
   (times, channels,) = (read_timestamps_from_file(fname=fname))  # channels may involve coincidence signatures such as '0101'
-  for channel in range(1, 5, 1):  # iterate through channel numbers 1, 2, 3, 4
-      timestamps["channel {}".format(channel)] = times[
-          [int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]
-      ]
+  for channel in range(1, 5, 1): timestamps["channel {}".format(channel)] = list(times[channels==channel_to_binString(channel)])
   return timestamps
 
 if __name__ == "__main__":

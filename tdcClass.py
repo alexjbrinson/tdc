@@ -356,23 +356,32 @@ class TimeStampTDC1(object):
     def toHist(self, buffer):
       vocalMode=False
       #(reads buffers as they come, and stores binned relative timestamps in a pickeled dictionary which can then be accessed by the live plotter).
-      t0=time.time()
+      timingRay=[time.time()]
       if vocalMode: print('ayyy')
       timestamps = {"channel 1":[], "channel 2":[], "channel 3":[], "channel 4":[]}
       for channel in self.remainder.keys():
           timestamps[channel] = self.remainder[channel] #appending events that appeared after final trigger time of previous buffer
-
+      timingRay+=[time.time()]
       times, channels, self.prev_Time, self.pCount = self.read_timestamps_bin_modified(buffer, prev_Time=self.prev_Time, pCount=self.pCount)
-      if vocalMode: print("prev_Time=",self.prev_Time, "pCount=", self.pCount)
-      for channel in range(1, 5, 1):  timestamps["channel {}".format(channel)] += list(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])
-      if vocalMode: 
-        for channel in range(1, 3, 1): print("channel %d read in %d timestamps this buffer cycle."%(channel, len(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])))
+      print("self.prev_Time, self.pCount = ",self.prev_Time, self.pCount)
+      '''if self.temp==True:
+        print(type(times), type(channels))
+        np.savetxt('tempTimes.txt',times)
+        with open('tempChannels.txt','w') as f: f.write(str(channels)); f.close()'''
+      self.temp=False
+      timingRay+=[time.time()]
+      if vocalMode: print("prev_Time=",self.prev_Time, "pCount=", self.pCount);
+      #for channel in range(1, 5, 1):  timestamps["channel {}".format(channel)] += list(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])#this line is the bottle neck!
+      for channel in range(1, 5, 1): timestamps["channel {}".format(channel)] += list(times[channels==tdcu.channel_to_binString(channel)]) #factor of 10 time save B)
+      timingRay+=[time.time()]
       self.allTriggers+=timestamps['channel 1']
-      if len(timestamps['channel 1'])==0 and self.lastTrigger==0: print('wahuh fuk m8?'); return
+      timingRay+=[time.time()]
+      if len(timestamps['channel 1'])==0 and self.lastTrigger==0: print('wahuh fuk m8?');return#; print(buffer); return
       elif self.lastTrigger==0: triggers=timestamps['channel 1']
       elif len(timestamps['channel 1'])==0: triggers = [self.lastTrigger] #todo: allow for other channels to be trigger?
       elif timestamps['channel 1'][0]<self.lastTrigger: #this is confusing and obnoxious. For now I'm just going to reset everything whenever this happens. liveplot data will be slightly off, but probably not by much
         print("WHY TF? Are the values wrapping?");
+        print("timestamps['channel 1'][0]=",timestamps['channel 1'][0],"self.lastTrigger=",self.lastTrigger)
         self.remainder={"channel 2":[], "channel 3":[], "channel 4":[]}; self.lastTrigger=0
         self.prev_Time = -1; self.pCount = 0
         return
@@ -383,6 +392,7 @@ class TimeStampTDC1(object):
         self.remainder={"channel 2":[], "channel 3":[], "channel 4":[]}; self.lastTrigger=0
         self.prev_Time = -1; self.pCount = 0
         return
+      timingRay+=[time.time()]
       try:
         #if len (triggers)==0: self.lastTrigger=0
         self.lastTrigger=triggers[-1]
@@ -400,24 +410,30 @@ class TimeStampTDC1(object):
         print("except case reached for some reason")
         for channel in self.remainder.keys():
           self.remainder[channel]+=timestamps[channel]
+      timingRay+=[time.time()]
       for channel in self.remainder.keys():
         eventTimes=timestamps[channel]
         if len(eventTimes)>0 and len(triggers)>0:
             if vocalMode: print(len(eventTimes), len(self.remainder[channel]))
+            #print('triggers type = ', type(triggers), 'eventTimes type = ', type(eventTimes))
             goodTimeStamps, triggerGroups = tdcu.timeStampConverter(triggers, eventTimes)#, run=-1, t0=0)
             binIncrements, bins = np.histogram(goodTimeStamps, bins=self.histogramBins)
             if vocalMode: print("len(binIncrements)=",len(binIncrements))
             self.dicForBinning[channel] += binIncrements
-      with open(self.liveDataFile,'wb') as file: pickle.dump(self.dicForBinning, file); file.close()
+            with open(self.liveDataFile,'wb') as file: pickle.dump(self.dicForBinning, file); file.close()
+            with open('testfile.csv','a') as file: np.savetxt(file, binIncrements); file.close()
+            print(len(goodTimeStamps), 'event timestamps recorded in this buffer')
 
-      t1=time.time()
-      print("this shit currently takes", t1-t0, "seconds per buffer")
+      timingRay+=[time.time()]#t3=time.time();
+      for i in range(len(timingRay)-1): print('t%d - t%d = '%(i+1,i), timingRay[i+1]-timingRay[i])
+      print('in total, this function took',timingRay[-1]-timingRay[0],'s to run. On a separate note: self.lastTrigger=', self.lastTrigger)
 
 
     def start_continuous_stream_timestamps_to_file(self, filename: str, cleanDBname: str, run:int, binRay=[], pickleDic="iTurnedMyselfIntoAPickle.pkl"):
         """
         Starts the timestamp streaming service to file in the brackground
         """
+        self.temp=True #todo: delete this later
         self.accumulated_timestamps_filename = filename
         self.cleanDBname = cleanDBname
         self.run=run
@@ -453,11 +469,11 @@ class TimeStampTDC1(object):
         self._com.readlines()
         self.writeToDBs()
 
-
     def writeToDBs(self):
         self.cleanDB = sl.connect(self.cleanDBname)
         timeStampsDic=self.read_timestamps_from_file_as_dict(self.accumulated_timestamps_filename)
-        print("wahatae", timeStampsDic)
+        for i in range(1,5):
+            print("channel%d had %d timestamps"%(i, len(timeStampsDic['channel '+str(i)])) )
         cleanFrame=tdcu.readAndParseScan(timeStampsDic, dropEnd=True, triggerChannel=1, run=self.run, t0=self.startTime)
         cleanFrame.to_sql('TDC', self.cleanDB, if_exists='append')
         
@@ -495,62 +511,72 @@ class TimeStampTDC1(object):
                 event_channel_list.append("{0:04b}".format(pattern & 0xF))
 
         ts_list2 = np.array(ts_list, dtype='int64') * 2
-        event_channel_list = event_channel_list
+        event_channel_list = np.array(event_channel_list)
         return ts_list2, event_channel_list
 
+    def tStampFixer(self, timeStamps, prev_Time=-1, pCount=0):
+      periode_count = pCount
+      periode_duration = 1<<27
+      prev_ts = prev_Time
+      timeStamps+=pCount*periode_duration #see shrugging comment in generateTimeAndChannelLists
+      for i in range(len(timeStamps)):
+        if prev_ts != -1 and timeStamps[i] < prev_ts:
+          periode_count += 1
+          #print(periode_count)
+          timeStamps[i:]+=periode_duration
+        prev_ts = timeStamps[i]
+      return(np.array(timeStamps, dtype='int64'), prev_ts, periode_count)
+
+    def generateTimeAndChannelLists(self, ts_word_list, prev_Time=-1, pCount=0):
+      periode_duration = 1<<27
+      time_stamp_list = ts_word_list >> 5# + pCount*periode_duration #it doesn't work here??? put it at beginning of tStampFixer, and now it behaves properly ¯\_(ツ)_/¯
+      fixed_tStamps, prev_ts, periode_count=self.tStampFixer(time_stamp_list, prev_Time=prev_Time, pCount=pCount)
+      pattern_list = np.array(ts_word_list & 0x1F); maskArray = pattern_list & 0x10 == 0
+      ts_list2 = 2*time_stamp_list[maskArray]
+      pattern_list=pattern_list[pattern_list & 0x10 == 0]
+    
+      event_channel_list=np.array(len(pattern_list)*['0001'])
+      event_channel_list[pattern_list==1]="{0:04b}".format(1)
+      event_channel_list[pattern_list==2]="{0:04b}".format(2)
+      event_channel_list[pattern_list==3]="{0:04b}".format(3)
+      event_channel_list[pattern_list==4]="{0:04b}".format(4)
+    
+      return ts_list2, event_channel_list, prev_ts, periode_count
+
     def read_timestamps_bin_modified(self, binary_stream, prev_Time=-1, pCount=0):
-        """
-        Reads the timestamps accumulated in a binary sequence
-        Returns:
-            Tuple[List[float], List[str]]:
-                Returns the event times in ns and the corresponding event channel.
-                The channel are returned as string where a 1 indicates the
-                trigger channel.
-                For example an event in channel 2 would correspond to "0010".
-                Two coinciding events in channel 3 and 4 correspond to "1100"
-        """
-        bytes_hex = binary_stream[::-1].hex()
-        ts_word_list = [
-            int(bytes_hex[i : i + 8], 16) for i in range(0, len(bytes_hex), 8)
-        ][::-1]
-
-        ts_list = []
-        event_channel_list = []
-        periode_count = pCount
-        periode_duration = 1 << 27
-        prev_ts = prev_Time
-        for ts_word in ts_word_list:
-            time_stamp = ts_word >> 5
-            pattern = ts_word & 0x1F
-            if prev_ts != -1 and time_stamp < prev_ts:
-                periode_count += 1
-            #         print(periode_count)
-            prev_ts = time_stamp
-            if (pattern & 0x10) == 0:
-                ts_list.append(time_stamp + periode_duration * periode_count)
-                event_channel_list.append("{0:04b}".format(pattern & 0xF))
-
-        ts_list2 = np.array(ts_list, dtype='int64') * 2
-        event_channel_list = event_channel_list
-        return ts_list2, event_channel_list, prev_ts, periode_count #returning these as well so I can keep track of and iterate them when I want to
+            """
+            Reads the timestamps accumulated in a binary sequence
+            Returns:
+                Tuple[List[float], List[str]]:
+                    Returns the event times in ns and the corresponding event channel.
+                    The channel are returned as string where a 1 indicates the
+                    trigger channel.
+                    For example an event in channel 2 would correspond to "0010".
+                    Two coinciding events in channel 3 and 4 correspond to "1100"
+            """
+            timingRay=[time.time()]
+            bytes_hex = binary_stream[::-1].hex()
+            ts_word_list = np.array([
+                int(bytes_hex[i : i + 8], 16) for i in range(0, len(bytes_hex), 8)
+            ][::-1], dtype='int64')
+            timingRay+=[time.time()]
+            print('prev_Time, pCount:', prev_Time, pCount)
+            ts_list2, event_channel_list, prev_ts, periode_count = self.generateTimeAndChannelLists(ts_word_list, prev_Time=prev_Time, pCount=pCount)
+    
+            timingRay+=[time.time()];
+            #for i in range(len(timingRay)-1): print('T%d - T%d = '%(i+1,i), timingRay[i+1]-timingRay[i])
+            print('prev_ts, periode_count:', prev_ts, periode_count)
+            return ts_list2, event_channel_list, prev_ts, periode_count #returning these as well so I can keep track of and iterate them when I want to
 
     def read_timestamps_from_file(self, fname=None):
-        """
-        Reads the timestamps accumulated in a binary file
-        """
+        #Reads the timestamps accumulated in a binary file
         if fname==None: fname=self.accumulated_timestamps_filename
-        with open(fname, "rb") as f:
-            lines = f.read()
-        f.close()
-        
+        with open(fname, "rb") as f: lines = f.read()
+        f.close()      
         return(self.read_timestamps_bin(lines))
 
     def read_timestamps_from_file_as_dict(self,fname=None):
-        """
-        Reads the timestamps accumulated in a binary file
-        Returns dictionary where timestamps['channel i'] is the timestamp array
-        in nsec for the ith channel
-        """
+        #Returns dictionary where timestamps['channel i'] is the timestamp array in nsec for the ith channel
         if fname==None: fname=self.accumulated_timestamps_filename
         timestamps = {}
         (
@@ -559,10 +585,11 @@ class TimeStampTDC1(object):
         ) = (
             self.read_timestamps_from_file(fname=fname)
         )  # channels may involve coincidence signatures such as '0101'
-        for channel in range(1, 5, 1):  # iterate through channel numbers 1, 2, 3, 4
+        '''for channel in range(1, 5, 1):  # iterate through channel numbers 1, 2, 3, 4
             timestamps["channel {}".format(channel)] = times[
                 [int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]
-            ]
+            ]'''
+        for channel in range(1, 5, 1): timestamps["channel {}".format(channel)] = list(times[channels==tdcu.channel_to_binString(channel)])
         return timestamps
 
     def real_time_processing(self):
