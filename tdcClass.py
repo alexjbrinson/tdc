@@ -16,7 +16,7 @@ import numpy as np
 import serial
 import serial.tools.list_ports
 
-import serial_connection
+#import serial_connection
 import threading
 import sqlite3 as sl
 import pickle
