@@ -79,6 +79,7 @@ class TimeStampTDC1(object):
         self.lastTrigger=0
         self.allTriggers=[]
         self.prev_Time=-1; self.pCount=0
+        self.timeStreamData=[]; self.timeStreamLength=100
         time.sleep(0.2)
 
     @property
@@ -363,7 +364,7 @@ class TimeStampTDC1(object):
           timestamps[channel] = self.remainder[channel] #appending events that appeared after final trigger time of previous buffer
       timingRay+=[time.time()]
       times, channels, self.prev_Time, self.pCount = self.read_timestamps_bin_modified(buffer, prev_Time=self.prev_Time, pCount=self.pCount)
-      print("self.prev_Time, self.pCount = ",self.prev_Time, self.pCount)
+      #print("self.prev_Time, self.pCount = ",self.prev_Time, self.pCount)
       '''if self.temp==True:
         print(type(times), type(channels))
         np.savetxt('tempTimes.txt',times)
@@ -418,18 +419,24 @@ class TimeStampTDC1(object):
             #print('triggers type = ', type(triggers), 'eventTimes type = ', type(eventTimes))
             goodTimeStamps, triggerGroups = tdcu.timeStampConverter(triggers, eventTimes)#, run=-1, t0=0)
             binIncrements, bins = np.histogram(goodTimeStamps, bins=self.histogramBins)
+            totalCountsInWindow=np.sum(binIncrements); print('totalCountsInWindow=',totalCountsInWindow)
+            bufferIntegrationTime=len(triggers)-1;print("bufferIntegrationTime=",bufferIntegrationTime)
+            countRate=totalCountsInWindow/bufferIntegrationTime; print('count rate over current buffer = ',countRate)
+            self.timeStreamData+=[countRate]
+            while len(self.timeStreamData)>self.timeStreamLength: #should only ever pop one element per function call
+                del self.timeStreamData[0]
             if vocalMode: print("len(binIncrements)=",len(binIncrements))
             self.dicForBinning[channel] += binIncrements
             with open(self.liveDataFile,'wb') as file: pickle.dump(self.dicForBinning, file); file.close()
-            with open('testfile.csv','a') as file: np.savetxt(file, binIncrements); file.close()
-            print(len(goodTimeStamps), 'event timestamps recorded in this buffer')
+            with open(self.liveTimeStreamFile,'wb') as file: pickle.dump(self.timeStreamData, file); file.close()
+            #print(len(goodTimeStamps), 'event timestamps recorded in this buffer')
 
       timingRay+=[time.time()]#t3=time.time();
-      for i in range(len(timingRay)-1): print('t%d - t%d = '%(i+1,i), timingRay[i+1]-timingRay[i])
-      print('in total, this function took',timingRay[-1]-timingRay[0],'s to run. On a separate note: self.lastTrigger=', self.lastTrigger)
+      for i in range(len(timingRay)-1): pass#print('t%d - t%d = '%(i+1,i), timingRay[i+1]-timingRay[i])
+      #print('in total, this function took',timingRay[-1]-timingRay[0],'s to run. On a separate note: self.lastTrigger=', self.lastTrigger)
 
 
-    def start_continuous_stream_timestamps_to_file(self, filename: str, cleanDBname: str, run:int, binRay=[], pickleDic="iTurnedMyselfIntoAPickle.pkl"):
+    def start_continuous_stream_timestamps_to_file(self, filename: str, cleanDBname: str, run:int, binRay=[], pickleDic="iTurnedMyselfIntoAPickle.pkl", timeStreamFile='timeStreamLiveData.pkl', tStreamLength=100):
         """
         Starts the timestamp streaming service to file in the brackground
         """
@@ -439,9 +446,15 @@ class TimeStampTDC1(object):
         self.run=run
         if len(binRay)==3:
             self.liveDataFile = pickleDic
+            try: os.remove(self.liveDataFile)
+            except: pass
             self.histogramBins=np.linspace(binRay[0], binRay[1], binRay[2]+1)
             self.dicForBinning={"channel 2":np.zeros(binRay[2]), "channel 3":np.zeros(binRay[2]), "channel 4":np.zeros(binRay[2])}
-
+        self.timeStreamData=[]
+        self.timeStreamLength=tStreamLength
+        self.liveTimeStreamFile = timeStreamFile;
+        try: os.remove(self.liveTimeStreamFile)
+        except: pass
         if os.path.exists(self.accumulated_timestamps_filename):
             os.remove(
                 self.accumulated_timestamps_filename

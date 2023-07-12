@@ -28,10 +28,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     QtWidgets.QMainWindow.__init__(self)
     Ui_MainWindow.__init__(self)
     self.setupUi(self)
-    self.dbName='fastData.db' #TODO: change this
+    self.dbName='allData.db' #TODO: change this
     self.rawDataFile='currentData.raw'
     self.liveDataFile="iTurnedMyselfIntoAPickle.pkl"
-    self.scanCountingFile = 'fastScanTracker.txt'
+    self.timeStreamFile='timeStreamLiveData.pkl'
+    self.scanCountingFile = 'scanTracker.txt'
     self.comPort='COM3' #TODO: Automate this
     self.connection = sl.connect(self.dbName)
     self.realData=False; self.hasOldData=False
@@ -39,7 +40,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     try:
       self.device = TimeStampTDC1(self.comPort)
       self.deviceCommunication=True
-      self.device.level = self.device.TTL_LEVELS
+      self.device.level = self.device.TTL_LEVELS#self.device.NIM_LEVELS#
       self.device.clock='2'#force internal clock
     except: self.deviceCommunication=False
     print("communicating with device?", self.deviceCommunication)
@@ -72,6 +73,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tMinLineEdit.returnPressed.connect(self.confirmMinTimeBin); self.tMaxLineEdit.returnPressed.connect(self.confirmMaxTimeBin); self.tBinsLineEdit.returnPressed.connect(self.confirmTimeBins)
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('s'));self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('s')); self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))    
 
+    self.timeStreamLength=100
+    self.xTimeStream=np.linspace(0, self.timeStreamLength-1,self.timeStreamLength)
+    self.yTimeStream=self.timeStreamLength*[0]
+
     self.loadOldRunsLineEdit.returnPressed.connect(self.loadOldRuns);
 
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)#list(range(self.tBinsValue))  # ToF x-axis
@@ -82,6 +87,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.pen2=pg.mkPen(color=(255,0,0), width=2)
     self.data_lineToF =  self.tofPlotWidget.plot(self.xToF, self.yToF, pen=self.pen1)
     self.data_lineToF2 =  self.tofPlotWidget.plot(self.xToF, self.yToF, pen=self.pen2)
+    self.data_line_tStream =  self.timeStreamPlotWidget.plot(self.xTimeStream, self.yTimeStream, pen=self.pen1)
 
     # The plotting
     colors = [(0, 0, 0), (45, 5, 61), (84, 42, 55), (150, 87, 60), (208, 171, 141), (255, 255, 255)]; self.cm = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)# color map
@@ -109,8 +115,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('units'))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)
     self.yToF = [-1]*(self.tBinsValue+1)
-    if self.realData: self.updatePlotTof()
-    if self.hasOldData: self.updatePlotTof2()
+    self.updatePlotTof()
+    self.updatePlotTof2()
 
   def confirmMaxTimeBin(self):
     if self.scanToggled: pass
@@ -124,8 +130,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('units'))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)
     self.yToF = [-1]*(self.tBinsValue+1)
-    if self.realData: self.updatePlotTof()
-    if self.hasOldData: self.updatePlotTof2()
+    self.updatePlotTof()
+    self.updatePlotTof2()
 
   def confirmTimeBins(self):
     if self.scanToggled: pass
@@ -139,8 +145,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)
     self.yToF = [-1]*(self.tBinsValue+1)
-    if self.realData: self.updatePlotTof()
-    if self.hasOldData: self.updatePlotTof2()
+    #if self.realData: self.updatePlotTof()
+    #if self.hasOldData: self.updatePlotTof2()
+    self.updatePlotTof()
+    self.updatePlotTof2()
 
   def loadOldRuns(self):
     oldRunsString=self.loadOldRunsLineEdit.text()
@@ -195,18 +203,34 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
       print('investigate this!'); quit()
     #time.sleep(self.sleepyTime)
     with open(self.liveDataFile, 'rb') as file:
-      self.currentData=pickle.load(file)
+      self.currentData=pickle.load(file); file.close()
     self.updatePlotTof()
+    with open(self.timeStreamFile, 'rb') as file:
+      self.tStreamData=pickle.load(file); file.close()
+      print('mean rate = %.3f +- %.3f'%(np.mean(self.tStreamData), np.std(self.tStreamData)))
+    self.updateTimeStream()
 
   def updatePlotTof(self):
-    if self.scanToggled: self.yToF = self.currentData["channel 3"] #TODO: Eventually allow to switch channels
-    else: self.yToF, bins =np.histogram(np.array(self.currentData.tStamp), bins=self.xToF)
+    if self.realData:
+      if self.scanToggled: self.yToF = self.currentData["channel 3"] #TODO: Eventually allow to switch channels
+      else: self.yToF, bins =np.histogram(np.array(self.currentData.tStamp), bins=self.xToF)
+    else: self.yToF = [-1]*(self.tBinsValue)
     self.data_lineToF.setData((self.xToF[1:]+self.xToF[:-1])/2, self.yToF, pen=self.pen1)
 
   def updatePlotTof2(self):
-    self.yToF2, bins =np.histogram(np.array(self.oldData.tStamp), bins=self.xToF)
+    if self.hasOldData:
+      self.yToF2, bins =np.histogram(np.array(self.oldData.tStamp), bins=self.xToF)
+      self.data_lineToF2.setData( (bins[1:]+bins[:-1])/2, self.yToF2, pen=self.pen2)
+    else: self.yToF2 = [-1]*(self.tBinsValue); bins = self.xToF
     self.data_lineToF2.setData( (bins[1:]+bins[:-1])/2, self.yToF2, pen=self.pen2)
     #self.data_lineToF.setData(self.xToF, self.yToF, pen=self.pen1)
+
+  def updateTimeStream(self):
+    if len(self.tStreamData)<self.timeStreamLength:
+      self.yTimeStream=(self.timeStreamLength-len(self.tStreamData))*[0]+self.tStreamData
+    else: self.yTimeStream=self.tStreamData
+    self.data_line_tStream.setData(self.xTimeStream, self.yTimeStream, pen=self.pen2)
+
 
   def safeExit():
     print("Live plotter closed")
