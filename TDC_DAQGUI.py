@@ -207,7 +207,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.updatePlotTof()
     with open(self.timeStreamFile, 'rb') as file:
       self.tStreamData=pickle.load(file); file.close()
-      print('mean rate = %.3f +- %.3f'%(np.mean(self.tStreamData), np.std(self.tStreamData)))
+      print('mean rate = %.3f +- %.3f'%(np.mean(self.tStreamData), np.std(self.tStreamData)/np.sqrt(len(tStreamData))))#reports mean and std error of counts/trigger group
     self.updateTimeStream()
 
   def updatePlotTof(self):
