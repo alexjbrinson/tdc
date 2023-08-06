@@ -82,8 +82,8 @@ def readAndParseScan(dic, dropEnd=True, triggerChannel=1, run=-1, t0=0):
       eventTimes=eventTimes[eventTimes>=firstTriggerTime] #dropping data before first trigger #TODO: do this in timeStampConverter() without slicing
       if dropEnd:eventTimes=eventTimes[eventTimes<lastTriggerTime]
       goodTimeStamps, triggerGroups=timeStampConverter(triggerTimes, eventTimes)
-      nf=nf.append(pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps,dtype=int),
-       'run':run*np.ones_like(goodTimeStamps,dtype=int),'triggerGroup':triggerGroups, 'globalTime':t0+(eventTimes*1E-9)}))
+      nf=pd.concat([nf,pd.DataFrame({'tStamp':goodTimeStamps, 'channel':i*np.ones_like(goodTimeStamps,dtype=int),
+       'run':run*np.ones_like(goodTimeStamps,dtype=int),'triggerGroup':triggerGroups, 'globalTime':t0+(eventTimes*1E-9)})])
   return(nf)
 
 '''def readAndParseScan(dframe, dropEnd=True, triggerChannel=1):

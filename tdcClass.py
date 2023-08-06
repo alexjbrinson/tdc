@@ -365,11 +365,6 @@ class TimeStampTDC1(object):
       timingRay+=[time.time()]
       times, channels, self.prev_Time, self.pCount = self.read_timestamps_bin_modified(buffer, prev_Time=self.prev_Time, pCount=self.pCount)
       #print("self.prev_Time, self.pCount = ",self.prev_Time, self.pCount)
-      '''if self.temp==True:
-        print(type(times), type(channels))
-        np.savetxt('tempTimes.txt',times)
-        with open('tempChannels.txt','w') as f: f.write(str(channels)); f.close()'''
-      self.temp=False
       timingRay+=[time.time()]
       if vocalMode: print("prev_Time=",self.prev_Time, "pCount=", self.pCount);
       #for channel in range(1, 5, 1):  timestamps["channel {}".format(channel)] += list(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])#this line is the bottle neck!
@@ -412,49 +407,60 @@ class TimeStampTDC1(object):
         for channel in self.remainder.keys():
           self.remainder[channel]+=timestamps[channel]
       timingRay+=[time.time()]
-      for channel in self.remainder.keys():
-        eventTimes=timestamps[channel]
-        if len(eventTimes)>0 and len(triggers)>0:
-            if vocalMode: print(len(eventTimes), len(self.remainder[channel]))
-            #print('triggers type = ', type(triggers), 'eventTimes type = ', type(eventTimes))
-            goodTimeStamps, triggerGroups = tdcu.timeStampConverter(triggers, eventTimes)#, run=-1, t0=0)
-            binIncrements, bins = np.histogram(goodTimeStamps, bins=self.histogramBins)
-            totalCountsInWindow=np.sum(binIncrements); print('totalCountsInWindow=',totalCountsInWindow)
-            bufferIntegrationTime=len(triggers)-1;print("bufferIntegrationTime=",bufferIntegrationTime)
-            countRate=totalCountsInWindow/bufferIntegrationTime; print('count rate over current buffer = ',countRate)
-            self.timeStreamData+=[countRate]
-            while len(self.timeStreamData)>self.timeStreamLength: #should only ever pop one element per function call
-                del self.timeStreamData[0]
-            if vocalMode: print("len(binIncrements)=",len(binIncrements))
-            self.dicForBinning[channel] += binIncrements
-            with open(self.liveDataFile,'wb') as file: pickle.dump(self.dicForBinning, file); file.close()
-            with open(self.liveTimeStreamFile,'wb') as file: pickle.dump(self.timeStreamData, file); file.close()
-            #print(len(goodTimeStamps), 'event timestamps recorded in this buffer')
+      if len(triggers)>0:
+        bufferIntegrationTime=len(triggers)-1;print("bufferIntegrationTime=",bufferIntegrationTime) #the number of complete trigger windows included in the current buffer
+        self.dicForToF_latest['triggerGroups'] = bufferIntegrationTime
+        self.dicForToF_latest['timestamp'] = time.time()
+        for channel in self.remainder.keys():
+          eventTimes=timestamps[channel]
+          timeStreamData=self.dicForTimeStream[channel]
+          if len(eventTimes)>0:
+              if vocalMode: print(len(eventTimes), len(self.remainder[channel]))
+              goodTimeStamps, triggerGroups = tdcu.timeStampConverter(triggers, eventTimes)#, run=-1, t0=0)
+              binIncrements, bins = np.histogram(goodTimeStamps, bins=self.histogramBins)
+              totalCountsInWindow=np.sum(binIncrements); print('totalCountsInWindow=',totalCountsInWindow)           
+              countRate=totalCountsInWindow/bufferIntegrationTime; print('count rate over current buffer = ',countRate)
+              '''self.timeStreamData+=[countRate]
+                                                  while len(self.timeStreamData)>self.timeStreamLength: #should only ever pop one element per function call
+                                                      del self.timeStreamData[0]'''
+              timeStreamData+=[countRate]
+              while len(timeStreamData)>self.timeStreamLength: del timeStreamData[0]#should only ever pop one element per function call
+              self.dicForTimeStream[channel]=timeStreamData
+              self.dicForToF_total[channel] += binIncrements
+              self.dicForToF_latest[channel] = binIncrements
+        with open(self.liveToFs_totals_File,'wb') as file: pickle.dump(self.dicForToF_total, file); file.close()
+        with open(self.liveTimeStreamFile,'wb') as file: pickle.dump(self.dicForTimeStream, file); file.close()
+        with open(self.liveToFs_latest_File,'wb') as file: pickle.dump(self.dicForToF_latest, file); file.close()
+        #print(len(goodTimeStamps), 'event timestamps recorded in this buffer')
 
       timingRay+=[time.time()]#t3=time.time();
       for i in range(len(timingRay)-1): pass#print('t%d - t%d = '%(i+1,i), timingRay[i+1]-timingRay[i])
       #print('in total, this function took',timingRay[-1]-timingRay[0],'s to run. On a separate note: self.lastTrigger=', self.lastTrigger)
 
 
-    def start_continuous_stream_timestamps_to_file(self, filename: str, cleanDBname: str, run:int, binRay=[], pickleDic="iTurnedMyselfIntoAPickle.pkl", timeStreamFile='timeStreamLiveData.pkl', tStreamLength=100):
+    def start_continuous_stream_timestamps_to_file(self, filename: str, cleanDBname: str, run:int, binRay=[0,1E9,1E3], totalToFs_targetFile="liveToFs_totals_File.pkl", latestToFs_targetFile="liveToFs_latest_File.pkl", timeStreamFile='timeStreamLiveData.pkl', tStreamLength=100):
         """
         Starts the timestamp streaming service to file in the brackground
         """
-        self.temp=True #todo: delete this later
         self.accumulated_timestamps_filename = filename
         self.cleanDBname = cleanDBname
         self.run=run
         if len(binRay)==3:
-            self.liveDataFile = pickleDic
-            try: os.remove(self.liveDataFile)
+            self.liveToFs_totals_File = totalToFs_targetFile
+            self.liveToFs_latest_File = latestToFs_targetFile
+            try: os.remove(self.liveToFs_totals_File)
             except: pass
             self.histogramBins=np.linspace(binRay[0], binRay[1], binRay[2]+1)
-            self.dicForBinning={"channel 2":np.zeros(binRay[2]), "channel 3":np.zeros(binRay[2]), "channel 4":np.zeros(binRay[2])}
+            self.dicForToF_total={"channel 2":np.zeros(binRay[2]), "channel 3":np.zeros(binRay[2]), "channel 4":np.zeros(binRay[2])}
+            self.dicForToF_latest = {"channel 2":np.zeros(binRay[2]), "channel 3":np.zeros(binRay[2]), "channel 4":np.zeros(binRay[2]), 'triggerGroups':-1, 'timeStamp':time.time()}
+            with open(self.liveToFs_totals_File,'wb') as file: pickle.dump(self.dicForToF_total, file); file.close()
         self.timeStreamData=[]
         self.timeStreamLength=tStreamLength
         self.liveTimeStreamFile = timeStreamFile;
+        self.dicForTimeStream={"channel 2":tStreamLength*[0], "channel 3":tStreamLength*[0], "channel 4":tStreamLength*[0]}
         try: os.remove(self.liveTimeStreamFile)
         except: pass
+        with open(self.liveTimeStreamFile,'wb') as file: pickle.dump(self.dicForTimeStream, file); file.close()
         if os.path.exists(self.accumulated_timestamps_filename):
             os.remove(
                 self.accumulated_timestamps_filename

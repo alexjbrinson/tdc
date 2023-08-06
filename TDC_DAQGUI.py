@@ -1,8 +1,8 @@
 import sqlite3 as sl
 from tdcClass import TimeStampTDC1
 import TDCutilities as tdcu
-import sys
-import os
+import tdcServer
+import sys, os
 import time
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import numpy as np
@@ -16,7 +16,6 @@ from datetime import datetime
 import pickle
 
 #np.set_printoptions(threshold=np.inf)
-# TODO: allow for loading of old datasets to overlay on histogram
 
 qtCreatorFile = "TDCGUI.ui" # Enter file here.
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
@@ -30,10 +29,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.setupUi(self)
     self.dbName='allData.db' #TODO: change this
     self.rawDataFile='currentData.raw'
-    self.liveDataFile="iTurnedMyselfIntoAPickle.pkl"
+    self.liveToFs_totals_File="liveToFs_totals_File.pkl"
+    self.liveToFs_latest_File="liveToFs_latest_File.pkl"
     self.timeStreamFile='timeStreamLiveData.pkl'
     self.scanCountingFile = 'scanTracker.txt'
-    self.comPort='COM3' #TODO: Automate this
+    self.comPort='COM13' #TODO: Automate this
     self.connection = sl.connect(self.dbName)
     self.realData=False; self.hasOldData=False
 
@@ -62,13 +62,14 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     
     self.oldRuns=[]
     self.oldData=pd.DataFrame({'tStamp':[]})
-    self.currentData=pd.DataFrame({'tStamp':[]})
+    self.currentData_totals=pd.DataFrame({'tStamp':[]})
+    self.currentData_latest=pd.DataFrame({'tStamp':[]})
     print('did it work?', self.currentRun)
     #self.scanNum=0+1 #TODO: Find max scan number in directory, and then set this to that + 1
     self.scanToggler.setText('start run '+str(self.currentRun))
     self.scanToggler.clicked.connect(self.beginScan)
 
-    self.tMinValue=0; self.tMaxValue=int(3E6); self.tBinsValue=int(1000) #some values to initialize, and then will update based on the value in self.binsLineEdit
+    self.tMinValue=int(5E3); self.tMaxValue=int(6E3); self.tBinsValue=int(1000) #some values to initialize, and then will update based on the value in self.binsLineEdit
     self.tMinLineEdit.setText(str(self.tMinValue)); self.tMaxLineEdit.setText(str(self.tMaxValue)); self.tBinsLineEdit.setText(str(self.tBinsValue))
     self.tMinLineEdit.returnPressed.connect(self.confirmMinTimeBin); self.tMaxLineEdit.returnPressed.connect(self.confirmMaxTimeBin); self.tBinsLineEdit.returnPressed.connect(self.confirmTimeBins)
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('s'));self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('s')); self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))    
@@ -81,12 +82,16 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)#list(range(self.tBinsValue))  # ToF x-axis
     print(len(self.xToF))
-    self.yToF = [-1]*(self.tBinsValue+1)
+    self.yToF_total = [-1]*(self.tBinsValue+1)
+    self.yToF_latest = [0]*(self.tBinsValue+1)
+    self.yToF_old = [0]*(self.tBinsValue+1)
     self.tofPlotWidget.setBackground('#f0f0f0')#('lightGray')
     self.pen1=pg.mkPen(color=(0,0,0), width=2)
     self.pen2=pg.mkPen(color=(255,0,0), width=2)
-    self.data_lineToF =  self.tofPlotWidget.plot(self.xToF, self.yToF, pen=self.pen1)
-    self.data_lineToF2 =  self.tofPlotWidget.plot(self.xToF, self.yToF, pen=self.pen2)
+    self.pen3=pg.mkPen(color=(0,0,255), width=2)
+    self.data_lineToF =  self.tofPlotWidget.plot(self.xToF, self.yToF_total, pen=self.pen1)
+    self.data_lineToF_old =  self.tofPlotWidget.plot(self.xToF, self.yToF_old, pen=self.pen2)
+    self.data_lineToF_latest =  self.tofPlotWidget.plot(self.xToF, self.yToF_latest, pen=self.pen3)
     self.data_line_tStream =  self.timeStreamPlotWidget.plot(self.xTimeStream, self.yTimeStream, pen=self.pen1)
 
     # The plotting
@@ -109,29 +114,31 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     try:
       tProposed = int(self.tMinLineEdit.text())
       if tProposed<0 or tProposed>self.tMaxValue:
-        print("please enter an integer between 0 and tMax"); tProposed = self.tMinValue #if line entry is trash, then set proposed freq to old value
+        print("please enter an integer between 0 and tMax (nanoseconds)."); tProposed = self.tMinValue #if line entry is trash, then set proposed freq to old value
     except: print("please enter an integer value."); tProposed = self.tMinValue #if line entry is trash, then set proposed freq to old value
     self.tMinValue=tProposed; self.tMinLineEdit.setText(str(self.tMinValue))
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('units'))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)
-    self.yToF = [-1]*(self.tBinsValue+1)
-    self.updatePlotTof()
-    self.updatePlotTof2()
+    self.yToF_total = [-1]*(self.tBinsValue+1)
+    self.updatePlotTof_total()
+    self.updatePlotTof_latest()
+    self.updatePlotTof_old()
 
   def confirmMaxTimeBin(self):
     if self.scanToggled: pass
     #updates self.fMaxValue, but only if it's reasonable
     try:
       tProposed = int(self.tMaxLineEdit.text())
-      if tProposed<self.tMinValue or tProposed>20000000:
-        print("please enter an integer between tMin and 2000 (units?)"); tProposed = self.tMaxValue #if line entry is trash, then set proposed freq to old value
+      if tProposed<self.tMinValue or tProposed>2E9:
+        print("please enter an integer between tMin and 2*10^9 (nanoseconds)."); tProposed = self.tMaxValue #if line entry is trash, then set proposed freq to old value
     except: print("please enter an integer value."); tProposed = self.tMaxValue #if line entry is trash, then set proposed freq to old value
     self.tMaxValue=tProposed; self.tMaxLineEdit.setText(str(self.tMaxValue))
     self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('units'))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)
-    self.yToF = [-1]*(self.tBinsValue+1)
-    self.updatePlotTof()
-    self.updatePlotTof2()
+    self.yToF_total = [-1]*(self.tBinsValue+1)
+    self.updatePlotTof_total()
+    self.updatePlotTof_latest()
+    self.updatePlotTof_old()
 
   def confirmTimeBins(self):
     if self.scanToggled: pass
@@ -144,11 +151,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tBinsValue=binsProposed; self.tBinsLineEdit.setText(str(self.tBinsValue))
     self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))
     self.xToF = np.linspace(self.tMinValue, self.tMaxValue, self.tBinsValue+1)
-    self.yToF = [-1]*(self.tBinsValue+1)
-    #if self.realData: self.updatePlotTof()
-    #if self.hasOldData: self.updatePlotTof2()
-    self.updatePlotTof()
-    self.updatePlotTof2()
+    self.yToF_total = [-1]*(self.tBinsValue+1)
+    #if self.realData: self.updatePlotTof_total()
+    #if self.hasOldData: self.updatePlotTof_old()
+    self.updatePlotTof_total()
+    self.updatePlotTof_latest()
+    self.updatePlotTof_old()
 
   def loadOldRuns(self):
     oldRunsString=self.loadOldRunsLineEdit.text()
@@ -162,10 +170,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     if success:
       self.oldData=pd.DataFrame()
       for run in self.oldRuns:
-        self.oldData=self.oldData.append(pd.read_sql_query("SELECT * from TDC WHERE run="+str(run), self.connection))
+        self.oldData=pd.concat([self.oldData,pd.read_sql_query("SELECT * from TDC WHERE run="+str(run), self.connection)])
       print('test oldData:\n', self.oldData)
       self.hasOldData = True
-      self.updatePlotTof2()
+      self.updatePlotTof_old()
 
   def endScan(self):
     if self.deviceCommunication:
@@ -173,7 +181,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.timer.stop()
     self.scanToggler.clicked.disconnect(self.endScan)
     self.scanToggled=False
-    self.currentData = pd.read_sql_query("SELECT * from TDC WHERE run="+str(self.currentRun), self.connection) #between scans, I would like "current data" to be re-binnable
+    self.currentData_totals = pd.read_sql_query("SELECT * from TDC WHERE run="+str(self.currentRun), self.connection) #between scans, I would like "current data" to be re-binnable
     self.currentRun+=1 #increment run number in preparation for next run
     self.scanToggler.clicked.connect(self.beginScan)
     self.scanToggler.setText('start run '+str(self.currentRun))
@@ -191,9 +199,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     self.scanToggled=True
     self.scanToggler.clicked.connect(self.endScan)
     self.scanToggler.setText('stop run '+str(self.currentRun))
-
+ 
     if self.deviceCommunication:
-      self.device.start_continuous_stream_timestamps_to_file(self.rawDataFile, self.dbName, self.currentRun, binRay=[self.tMinValue,self.tMaxValue,self.tBinsValue], pickleDic=self.liveDataFile)
+      self.device.start_continuous_stream_timestamps_to_file(self.rawDataFile, self.dbName, self.currentRun, binRay=[self.tMinValue,self.tMaxValue,self.tBinsValue],
+                                                                    totalToFs_targetFile=self.liveToFs_totals_File, latestToFs_targetFile=self.liveToFs_latest_File)
     self.realData = True
     self.timer.timeout.connect(self.updateEverything)
     self.timer.start()
@@ -202,27 +211,37 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     if not self.scanToggled:
       print('investigate this!'); quit()
     #time.sleep(self.sleepyTime)
-    with open(self.liveDataFile, 'rb') as file:
-      self.currentData=pickle.load(file); file.close()
-    self.updatePlotTof()
+    with open(self.liveToFs_totals_File, 'rb') as file:
+      self.currentData_totals=pickle.load(file); file.close()
+    self.updatePlotTof_total()
+    with open(self.liveToFs_latest_File, 'rb') as file:
+      self.currentData_latest=pickle.load(file); file.close()
+    self.updatePlotTof_latest()
     with open(self.timeStreamFile, 'rb') as file:
-      self.tStreamData=pickle.load(file); file.close()
-      print('mean rate = %.3f +- %.3f'%(np.mean(self.tStreamData), np.std(self.tStreamData)/np.sqrt(len(tStreamData))))#reports mean and std error of counts/trigger group
+      self.tStreamDataDic=pickle.load(file); file.close()
+    self.tStreamData=self.tStreamDataDic['channel 3']
+    print('mean rate = %.3f +- %.3f'%(np.mean(self.tStreamData), np.std(self.tStreamData)/np.sqrt(len(self.tStreamData))))#reports mean and std error of counts/trigger group
     self.updateTimeStream()
 
-  def updatePlotTof(self):
+  def updatePlotTof_total(self):
     if self.realData:
-      if self.scanToggled: self.yToF = self.currentData["channel 3"] #TODO: Eventually allow to switch channels
-      else: self.yToF, bins =np.histogram(np.array(self.currentData.tStamp), bins=self.xToF)
-    else: self.yToF = [-1]*(self.tBinsValue)
-    self.data_lineToF.setData((self.xToF[1:]+self.xToF[:-1])/2, self.yToF, pen=self.pen1)
+      if self.scanToggled: self.yToF_total = self.currentData_totals["channel 3"] #TODO: Eventually allow to switch channels
+      else: self.yToF_total, bins =np.histogram(np.array(self.currentData_totals.tStamp), bins=self.xToF)
+    else: self.yToF_total = [-1]*(self.tBinsValue)
+    self.data_lineToF.setData((self.xToF[1:]+self.xToF[:-1])/2, self.yToF_total, pen=self.pen1)
 
-  def updatePlotTof2(self):
+  def updatePlotTof_latest(self):
+    if self.realData and self.scanToggled:
+      self.yToF_latest = self.currentData_latest["channel 3"] #TODO: Eventually allow to switch channels
+    else: self.yToF_latest = [0]*(self.tBinsValue)
+    self.data_lineToF_latest.setData((self.xToF[1:]+self.xToF[:-1])/2, -self.yToF_latest, pen=self.pen3)
+
+  def updatePlotTof_old(self):
     if self.hasOldData:
-      self.yToF2, bins =np.histogram(np.array(self.oldData.tStamp), bins=self.xToF)
-      self.data_lineToF2.setData( (bins[1:]+bins[:-1])/2, self.yToF2, pen=self.pen2)
-    else: self.yToF2 = [-1]*(self.tBinsValue); bins = self.xToF
-    self.data_lineToF2.setData( (bins[1:]+bins[:-1])/2, self.yToF2, pen=self.pen2)
+      self.yToF_old, bins =np.histogram(np.array(self.oldData.tStamp), bins=self.xToF)
+      self.data_lineToF_old.setData( (bins[1:]+bins[:-1])/2, self.yToF_old, pen=self.pen2)
+    else: self.yToF_old = [-1]*(self.tBinsValue); bins = self.xToF
+    self.data_lineToF_old.setData( (bins[1:]+bins[:-1])/2, self.yToF_old, pen=self.pen2)
     #self.data_lineToF.setData(self.xToF, self.yToF, pen=self.pen1)
 
   def updateTimeStream(self):
