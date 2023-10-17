@@ -15,6 +15,7 @@ import TDCutilities as tdcu
 import numpy as np
 import serial
 import serial.tools.list_ports
+import pandas as pd
 
 #import serial_connection
 import threading
@@ -80,6 +81,7 @@ class TimeStampTDC1(object):
         self.allTriggers=[]
         self.prev_Time=-1; self.pCount=0
         self.timeStreamData=[]; self.timeStreamLength=100
+        self.updateDB = False
         time.sleep(0.2)
 
     @property
@@ -191,6 +193,7 @@ class TimeStampTDC1(object):
         Args:
             value (float): threshold value in volts can be negative or positive
         """
+        print('value=',value)
         if value < 0:
             self.write_only("NEG {}".format(value))
         else:
@@ -335,33 +338,50 @@ class TimeStampTDC1(object):
         self._com.write(b"help\r\n")
         [print(k) for k in self._com.readlines()]
 
-    def _continuous_stream_timestamps_to_file(self, filename: str, binRay=[]):
+    def _continuous_stream_timestamps_to_file(self, filename: str, binRay=[], int_time=0):
         """
         Indefinitely streams timestamps to a file
         WARNING: ensure there is sufficient disk space: 32 bits x total events required
         """
+        self.int_time = int_time
         self.mode = "singles"
         level = float(self.level.split()[0])
         level_str = "NEG" if level < 0 else "POS"
         self._com.readlines()  # empties buffer
         # t_acq_for_cmd = t_acq if t_acq < 65 else 0
-        cmd_str = "INPKT;{} {};time {};timestamp;counts?;".format(level_str, level, 0)
-        self._com.write((cmd_str + "\r\n").encode())
-        while self.accumulate_timestamps:
-            buffer = self._com.read((1 << 20) * 4)
-            with open(filename, "ab+") as f:
-                f.write(buffer); f.flush()
-            f.close()
-            if len(binRay)==3: self.toHist(buffer) #this will be a function to hopefully aid in efficient liveplotting
+        cmd_str = "INPKT;{} {};time {};timestamp;counts?;".format(level_str, level, int_time)
+        #if integration time is "0", device only needs to be written to once, and will output data every time the buffer fills up,
+        #otherwise, TDC must be told to record once every intergration period. There is a non-negligible (0.2s?) dead time in this mode.
+        self.lastTriggerGroup=0
+        if int_time==0:
+            self.startTime=time.time() #"Unix time" in seconds, since the "epoch"
+            self._com.write((cmd_str + "\r\n").encode())
+            while self.accumulate_timestamps:
+                buffer = self._com.read((1 << 20) * 4)
+                with open(filename, "ab+") as f:
+                    f.write(buffer); f.flush()
+                f.close()
+                if len(binRay)==3: self.toHist(buffer)
+        else:
+            while self.accumulate_timestamps:
+                self.startTime=time.time() #"Unix time" in seconds, since the "epoch". If there's variable dead time between subsequent buffers, then we need to measure TDC times relative to updated start times
+                buffer = self._stream_response_into_buffer(cmd_str, float(int_time)/1000)# + 0.1)
+                #if buffer==b'': pass
+                with open(filename, "ab+") as f:
+                    f.write(buffer); f.flush()
+                f.close()
+                if len(binRay)==3: self.toHist(buffer) 
 
     def toHist(self, buffer):
+      #this will be a function to hopefully aid in efficient liveplotting
+      if buffer==b'': print('empty buffer');return
       vocalMode=False
       #(reads buffers as they come, and stores binned relative timestamps in a pickeled dictionary which can then be accessed by the live plotter).
       timingRay=[time.time()]
       if vocalMode: print('ayyy')
       timestamps = {"channel 1":[], "channel 2":[], "channel 3":[], "channel 4":[]}
-      for channel in self.remainder.keys():
-          timestamps[channel] = self.remainder[channel] #appending events that appeared after final trigger time of previous buffer
+      if self.int_time==0: #keeping track of remainders is only appropriate if there is no deadtime between the event times recorded in subsequent buffers
+        for channel in self.remainder.keys(): timestamps[channel] = self.remainder[channel] #appending events that appeared after final trigger time of previous buffer
       timingRay+=[time.time()]
       times, channels, self.prev_Time, self.pCount = self.read_timestamps_bin_modified(buffer, prev_Time=self.prev_Time, pCount=self.pCount)
       #print("self.prev_Time, self.pCount = ",self.prev_Time, self.pCount)
@@ -372,7 +392,7 @@ class TimeStampTDC1(object):
       timingRay+=[time.time()]
       self.allTriggers+=timestamps['channel 1']
       timingRay+=[time.time()]
-      if len(timestamps['channel 1'])==0 and self.lastTrigger==0: print('wahuh fuk m8?');return#; print(buffer); return
+      if len(timestamps['channel 1'])==0 and self.lastTrigger==0: print("wahuh fuk m8? I'm not even triggered m8");return#; print(buffer); return
       elif self.lastTrigger==0: triggers=timestamps['channel 1']
       elif len(timestamps['channel 1'])==0: triggers = [self.lastTrigger] #todo: allow for other channels to be trigger?
       elif timestamps['channel 1'][0]<self.lastTrigger: #this is confusing and obnoxious. For now I'm just going to reset everything whenever this happens. liveplot data will be slightly off, but probably not by much
@@ -407,48 +427,62 @@ class TimeStampTDC1(object):
         for channel in self.remainder.keys():
           self.remainder[channel]+=timestamps[channel]
       timingRay+=[time.time()]
-      if len(triggers)>0:
-        bufferIntegrationTime=len(triggers)-1;print("bufferIntegrationTime=",bufferIntegrationTime) #the number of complete trigger windows included in the current buffer
+      if len(triggers)>1:
+        bufferFrame=pd.DataFrame()
+        bufferIntegrationTime=len(triggers)-1 #the number of complete trigger windows included in the current buffer
         self.dicForToF_latest['triggerGroups'] = bufferIntegrationTime
-        self.dicForToF_latest['timestamp'] = time.time()
+        self.dicForToF_latest['timeStamp'] = time.time()
+        print(len(triggers), 'triggers recorded in this buffer')
         for channel in self.remainder.keys():
           eventTimes=timestamps[channel]
           timeStreamData=self.dicForTimeStream[channel]
           if len(eventTimes)>0:
               if vocalMode: print(len(eventTimes), len(self.remainder[channel]))
+              print(len(eventTimes), len(self.remainder[channel]))
+              
               goodTimeStamps, triggerGroups = tdcu.timeStampConverter(triggers, eventTimes)#, run=-1, t0=0)
-              binIncrements, bins = np.histogram(goodTimeStamps, bins=self.histogramBins)
-              totalCountsInWindow=np.sum(binIncrements); print('totalCountsInWindow=',totalCountsInWindow)           
-              countRate=totalCountsInWindow/bufferIntegrationTime; print('count rate over current buffer = ',countRate)
-              '''self.timeStreamData+=[countRate]
-                                                  while len(self.timeStreamData)>self.timeStreamLength: #should only ever pop one element per function call
-                                                      del self.timeStreamData[0]'''
-              timeStreamData+=[countRate]
-              while len(timeStreamData)>self.timeStreamLength: del timeStreamData[0]#should only ever pop one element per function call
-              self.dicForTimeStream[channel]=timeStreamData
-              self.dicForToF_total[channel] += binIncrements
-              self.dicForToF_latest[channel] = binIncrements
+              bufferFrame=pd.concat([bufferFrame, pd.DataFrame({'tStamp':goodTimeStamps, 'channel':int(channel.strip('channel '))*np.ones_like(goodTimeStamps,dtype=int),
+                                                               'run':self.run*np.ones_like(goodTimeStamps,dtype=int),'triggerGroup':np.array(triggerGroups)+self.lastTriggerGroup, 'globalTime':self.startTime+(np.array(eventTimes)*1E-9)})])
+              self.lastTriggerGroup+=len(triggers)#TODO: Test empirically, to make sure this makes sense. want to increment tGroup offset after every buffer so that they always grow by an increment of 1
+          else: goodTimeStamps=[]
+          binIncrements, bins = np.histogram(goodTimeStamps, bins=self.histogramBins)
+          totalCountsInWindow=np.sum(binIncrements); #print('totalCountsInWindow=',totalCountsInWindow)           
+          countRate=totalCountsInWindow/bufferIntegrationTime; #print('count rate over current buffer = ',countRate)
+          '''self.timeStreamData+=[countRate]
+                                              while len(self.timeStreamData)>self.timeStreamLength: #should only ever pop one element per function call
+                                                  del self.timeStreamData[0]'''
+          timeStreamData+=[countRate]
+          while len(timeStreamData)>self.timeStreamLength: del timeStreamData[0]#should only ever pop one element per function call
+          self.dicForTimeStream[channel]=timeStreamData
+          self.dicForToF_total[channel] += binIncrements
+          self.dicForToF_latest[channel] = binIncrements
         with open(self.liveToFs_totals_File,'wb') as file: pickle.dump(self.dicForToF_total, file); file.close()
         with open(self.liveTimeStreamFile,'wb') as file: pickle.dump(self.dicForTimeStream, file); file.close()
         with open(self.liveToFs_latest_File,'wb') as file: pickle.dump(self.dicForToF_latest, file); file.close()
+        self.cleanDB = sl.connect(self.cleanDBname)
+        bufferFrame.to_sql('TDC', self.cleanDB, if_exists='append')
         #print(len(goodTimeStamps), 'event timestamps recorded in this buffer')
+        print("We really out here", time.time())
 
       timingRay+=[time.time()]#t3=time.time();
       for i in range(len(timingRay)-1): pass#print('t%d - t%d = '%(i+1,i), timingRay[i+1]-timingRay[i])
       #print('in total, this function took',timingRay[-1]-timingRay[0],'s to run. On a separate note: self.lastTrigger=', self.lastTrigger)
 
 
-    def start_continuous_stream_timestamps_to_file(self, filename: str, cleanDBname: str, run:int, binRay=[0,1E9,1E3], totalToFs_targetFile="liveToFs_totals_File.pkl", latestToFs_targetFile="liveToFs_latest_File.pkl", timeStreamFile='timeStreamLiveData.pkl', tStreamLength=100):
-        """
-        Starts the timestamp streaming service to file in the brackground
-        """
+    def start_continuous_stream_timestamps_to_file(self, filename: str, cleanDBname: str, run:int, binRay=[0,1E9,1E3], 
+        totalToFs_targetFile="liveToFs_totals_File.pkl", latestToFs_targetFile="liveToFs_latest_File.pkl",
+         timeStreamFile='timeStreamLiveData.pkl', tStreamLength=100, int_time=0):
+        #Starts the timestamp streaming service to file in the brackground
         self.accumulated_timestamps_filename = filename
         self.cleanDBname = cleanDBname
+        print('test:', self.cleanDBname)
+        
+        #with self.cleanDB: self.cleanDB.execute("""CREATE TABLE IF NOT EXISTS TDC""")
         self.run=run
         if len(binRay)==3:
             self.liveToFs_totals_File = totalToFs_targetFile
             self.liveToFs_latest_File = latestToFs_targetFile
-            try: os.remove(self.liveToFs_totals_File)
+            try: os.remove(self.liveToFs_totals_File); os.remove(self.liveToFs_latest_File)
             except: pass
             self.histogramBins=np.linspace(binRay[0], binRay[1], binRay[2]+1)
             self.dicForToF_total={"channel 2":np.zeros(binRay[2]), "channel 3":np.zeros(binRay[2]), "channel 4":np.zeros(binRay[2])}
@@ -458,6 +492,7 @@ class TimeStampTDC1(object):
         self.timeStreamLength=tStreamLength
         self.liveTimeStreamFile = timeStreamFile;
         self.dicForTimeStream={"channel 2":tStreamLength*[0], "channel 3":tStreamLength*[0], "channel 4":tStreamLength*[0]}
+
         try: os.remove(self.liveTimeStreamFile)
         except: pass
         with open(self.liveTimeStreamFile,'wb') as file: pickle.dump(self.dicForTimeStream, file); file.close()
@@ -470,10 +505,9 @@ class TimeStampTDC1(object):
         self.accumulate_timestamps = True
         self.proc = threading.Thread(
             target=self._continuous_stream_timestamps_to_file,
-            args=(self.accumulated_timestamps_filename, binRay),
+            args=(self.accumulated_timestamps_filename, binRay, int_time),
         )
         self.proc.daemon = True  # Daemonize thread
-        self.startTime=time.time() #"Unix time" in seconds, since the "epoch"
         self.proc.start()  # Start the execution
 
     def stop_continuous_stream_timestamps_to_file(self):
@@ -481,12 +515,11 @@ class TimeStampTDC1(object):
         Stops the timestamp streaming service to file in the brackground
         """
         self.accumulate_timestamps = False
-        #self.proc.terminate()
         time.sleep(0.5)
         self.proc.join()
         self._com.write(b"abort\r\n")
         self._com.readlines()
-        self.writeToDBs()
+        if self.updateDB: self.writeToDBs()
 
     def writeToDBs(self):
         self.cleanDB = sl.connect(self.cleanDBname)
@@ -579,12 +612,12 @@ class TimeStampTDC1(object):
                 int(bytes_hex[i : i + 8], 16) for i in range(0, len(bytes_hex), 8)
             ][::-1], dtype='int64')
             timingRay+=[time.time()]
-            print('prev_Time, pCount:', prev_Time, pCount)
+            #print('prev_Time, pCount:', prev_Time, pCount)
             ts_list2, event_channel_list, prev_ts, periode_count = self.generateTimeAndChannelLists(ts_word_list, prev_Time=prev_Time, pCount=pCount)
     
             timingRay+=[time.time()];
             #for i in range(len(timingRay)-1): print('T%d - T%d = '%(i+1,i), timingRay[i+1]-timingRay[i])
-            print('prev_ts, periode_count:', prev_ts, periode_count)
+            #print('prev_ts, periode_count:', prev_ts, periode_count)
             return ts_list2, event_channel_list, prev_ts, periode_count #returning these as well so I can keep track of and iterate them when I want to
 
     def read_timestamps_from_file(self, fname=None):

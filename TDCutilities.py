@@ -10,43 +10,9 @@ import threading
 import serial
 from numba import njit
 
-def writeToDB(connection, runNum):
-  #emulates the data format that I'm using to store actual TDC data, but this is just random data
-  runningCondition=True
-  while runningCondition:
-    period=0.1
-    time.sleep(period)
-    bufferDataTrigger=time.time()
-    eventData=bufferDataTrigger+np.sort(period*np.random.rand(np.random.randint(50)))
-    xData = np.concatenate([[bufferDataTrigger], eventData]); xData=[float(x) for x in xData]
-    yData = np.concatenate([[1], 2*np.ones_like(eventData)]); yData=[int(y) for y in yData]
-    zData = [int(runNum) for i in range(len(xData))]
-    data=list(zip(xData,yData, zData))
-    sql = 'INSERT OR IGNORE INTO TDC (tStamp, channel, run) values(?, ?, ?)'
-    connection.executemany(sql,data)
-    connection.commit()
-    runningCondition=False
-
-def writeToDB2(connection, runNum):
-  #emulates the data format that I'm using to store actual TDC data, but this is just random data
-  runningCondition=True
-  while runningCondition:
-    period=0.1
-    time.sleep(period)
-    bufferDataTrigger=time.time()
-    eventData=bufferDataTrigger+period*np.linspace(0, 1, 10)
-    xData = np.concatenate([[bufferDataTrigger], eventData]); xData=[float(x) for x in xData]
-    yData = np.concatenate([[1], 2*np.ones_like(eventData)]); yData=[int(y) for y in yData]
-    zData = [int(runNum) for i in range(len(xData))]
-    data=list(zip(xData,yData, zData))
-    sql = 'INSERT OR IGNORE INTO TDC (tStamp, channel, run) values(?, ?, ?)'
-    connection.executemany(sql,data)
-    connection.commit()
-    runningCondition=False
-
 def channel_to_binString(channel):
   #pretty silly, but effective
-  if channel==1:   return('0001')
+  if   channel==1: return('0001')
   elif channel==2: return('0010')
   elif channel==3: return('0100')
   elif channel==4: return('1000')
@@ -176,10 +142,6 @@ if __name__ == "__main__":
               run INTEGER
           );
           """)
-
-  #generating dummy data
-  for runNum in range(20):
-    writeToDB2(con, runNum)
 
   #loading database one run at a time
   totalFrame = pd.DataFrame()
