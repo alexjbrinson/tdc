@@ -29,10 +29,10 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     self.setupUi(self)
     self.setWindowTitle('TDC GUI') ;#self.setWindowIcon(QIcon('TDC_Icon.png'))
     if settingsDic=={}:
-      settingsDic={'int_time':0,
+      settingsDic={'int_time':100,
                    'mode':'NIM',
-                   'threshold':-0.25,
-                   'path':'DummyData'}
+                   'threshold':-1.0,
+                   'path':'../data/DummyData'}
 
     self.settingsDic=settingsDic
     self.settingsButton.clicked.connect(self.openSettingsWindow)
@@ -58,7 +58,7 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     self.currentData_latest=pd.DataFrame({'tStamp':[]})
 
 
-    self.tMinValue=int(0); self.tMaxValue=int(1E5); self.tBinsValue=int(100) #some values to initialize, and then will update based on the value in self.binsLineEdit
+    self.tMinValue=int(3E3); self.tMaxValue=int(7E3); self.tBinsValue=int(100) #some values to initialize, and then will update based on the value in self.binsLineEdit
     self.tMinLineEdit.setText(str(self.tMinValue)); self.tMaxLineEdit.setText(str(self.tMaxValue)); self.tBinsLineEdit.setText(str(self.tBinsValue))
     self.tMinLineEdit.returnPressed.connect(self.confirmMinTimeBin); self.tMaxLineEdit.returnPressed.connect(self.confirmMaxTimeBin); self.tBinsLineEdit.returnPressed.connect(self.confirmTimeBins)
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('s'));self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('s')); self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))    
@@ -209,7 +209,16 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     if success:
       self.oldData=pd.DataFrame()
       for run in self.oldRuns:
-        self.oldData=pd.concat([self.oldData,pd.read_sql_query("SELECT * from TDC WHERE run="+str(run), self.connection)])
+        try:
+          oldDataPrefix=str(self.scanDirectory)+'/scan'+str(run)+'/scan'+str(run)+'_'
+          old_dbName=oldDataPrefix+'allData.db'
+          print('test: old_dbName=',old_dbName)
+          oldDataConnection = sl.connect(old_dbName)
+          print('works up to here?')
+          tempFrame=pd.read_sql_query("SELECT * from TDC", oldDataConnection); print(tempFrame)
+          self.oldData=pd.concat([self.oldData,pd.read_sql_query("SELECT * from TDC WHERE run="+str(run), oldDataConnection)])
+          oldDataConnection.close()
+        except: print('failed to load run %d. Does it really even exist?'%run)
       print('test oldData:\n', self.oldData)
       self.hasOldData = True
       self.updatePlotTof_old()
@@ -320,7 +329,7 @@ if __name__ == "__main__":
   settingsDic={'int_time':500,
                'mode':'NIM',
                'threshold':-0.25,
-               'path':'RFQ Tests'}
+               'path':'../data/RFQ Tests'}
   #TODO: make this initial setting window work without causing wack ass errors on main window closure.
   # app0 = QtWidgets.QApplication(sys.argv)
   # settingsWindow=SettingsWindow(settingDic=settingsDic);#app0.aboutToQuit.connect(settingsWindow.cancel)#placeholder for setting window

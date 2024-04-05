@@ -29,9 +29,9 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     self.setupUi(self)
     self.setWindowTitle('TDC GUI') ;#self.setWindowIcon(QIcon('TDC_Icon.png'))
     if settingsDic=={}:
-      settingsDic={'int_time':500,
+      settingsDic={'int_time':200,
                    'mode':'NIM',
-                   'threshold':-0.25,
+                   'threshold':-2.0,
                    'path':'./'}
 
     self.settingsDic=settingsDic
@@ -58,7 +58,7 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     self.currentData_latest=pd.DataFrame({'tStamp':[]})
 
 
-    self.tMinValue=int(4E3); self.tMaxValue=int(7E3); self.tBinsValue=int(100) #some values to initialize, and then will update based on the value in self.binsLineEdit
+    self.tMinValue=int(3E3); self.tMaxValue=int(7E3); self.tBinsValue=int(100) #some values to initialize, and then will update based on the value in self.binsLineEdit
     self.tMinLineEdit.setText(str(self.tMinValue)); self.tMaxLineEdit.setText(str(self.tMaxValue)); self.tBinsLineEdit.setText(str(self.tBinsValue))
     self.tMinLineEdit.returnPressed.connect(self.confirmMinTimeBin); self.tMaxLineEdit.returnPressed.connect(self.confirmMaxTimeBin); self.tBinsLineEdit.returnPressed.connect(self.confirmTimeBins)
     self.tMinLabel.setText('Min Time: '+str(self.tMinValue)+str('s'));self.tMaxLabel.setText('Max Time: '+str(self.tMaxValue)+str('s')); self.tBinsLabel.setText('bin count: '+str(self.tBinsValue))    

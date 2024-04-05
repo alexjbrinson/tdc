@@ -44,7 +44,7 @@ class SettingsWindow(QtWidgets.QWidget, Ui_MainWindow):
     self.confirmationButton.clicked.connect(self.confirm)
 
   def selectDirectory(self):
-    file = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+    file = str(QFileDialog.getExistingDirectory(self, "Select Directory",'../data'))
     self.scanDirectory=file
     self.scanDirectoryLabel.setText(self.scanDirectory)
 

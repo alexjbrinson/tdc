@@ -343,7 +343,7 @@ class TimeStampTDC1(object):
         Indefinitely streams timestamps to a file
         WARNING: ensure there is sufficient disk space: 32 bits x total events required
         """
-        self.int_time = int_time
+        #self.int_time = int_time
         self.mode = "singles"
         level = float(self.level.split()[0])
         level_str = "NEG" if level < 0 else "POS"
@@ -354,6 +354,7 @@ class TimeStampTDC1(object):
         #otherwise, TDC must be told to record once every intergration period. There is a non-negligible (0.2s?) dead time in this mode.
         self.lastTriggerGroup=0
         if int_time==0:
+            print('test: zero mode successfully called')
             self.startTime=time.time() #"Unix time" in seconds, since the "epoch"
             self._com.write((cmd_str + "\r\n").encode())
             while self.accumulate_timestamps:
@@ -361,7 +362,7 @@ class TimeStampTDC1(object):
                 with open(filename, "ab+") as f:
                     f.write(buffer); f.flush()
                 f.close()
-                if len(binRay)==3: self.toHist(buffer)
+                if len(binRay)==3: self.toHist(buffer, int_time=int_time)
         else:
             while self.accumulate_timestamps:
                 self.startTime=time.time() #"Unix time" in seconds, since the "epoch". If there's variable dead time between subsequent buffers, then we need to measure TDC times relative to updated start times
@@ -370,9 +371,9 @@ class TimeStampTDC1(object):
                 with open(filename, "ab+") as f:
                     f.write(buffer); f.flush()
                 f.close()
-                if len(binRay)==3: self.toHist(buffer) 
+                if len(binRay)==3: self.toHist(buffer, int_time=int_time) 
 
-    def toHist(self, buffer):
+    def toHist(self, buffer, int_time=0):
       #this will be a function to hopefully aid in efficient liveplotting
       if buffer==b'': print('empty buffer');return
       vocalMode=False
@@ -380,7 +381,7 @@ class TimeStampTDC1(object):
       timingRay=[time.time()]
       if vocalMode: print('ayyy')
       timestamps = {"channel 1":[], "channel 2":[], "channel 3":[], "channel 4":[]}
-      if self.int_time==0: #keeping track of remainders is only appropriate if there is no deadtime between the event times recorded in subsequent buffers
+      if int_time==0: #keeping track of remainders is only appropriate if there is no deadtime between the event times recorded in subsequent buffers
         for channel in self.remainder.keys(): timestamps[channel] = self.remainder[channel] #appending events that appeared after final trigger time of previous buffer
       timingRay+=[time.time()]
       times, channels, self.prev_Time, self.pCount = self.read_timestamps_bin_modified(buffer, prev_Time=self.prev_Time, pCount=self.pCount)
