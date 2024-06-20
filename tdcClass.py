@@ -388,8 +388,8 @@ class TimeStampTDC1(object):
       #print("self.prev_Time, self.pCount = ",self.prev_Time, self.pCount)
       timingRay+=[time.time()]
       if vocalMode: print("prev_Time=",self.prev_Time, "pCount=", self.pCount);
-      #for channel in range(1, 5, 1):  timestamps["channel {}".format(channel)] += list(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])#this line is the bottle neck!
-      for channel in range(1, 5, 1): timestamps["channel {}".format(channel)] += list(times[channels==tdcu.channel_to_binString(channel)]) #factor of 10 time save B)
+      for channel in range(1, 5, 1):  timestamps["channel {}".format(channel)] += list(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])#this line is the bottle neck!
+      #for channel in range(1, 5, 1): timestamps["channel {}".format(channel)] += list(times[channels==tdcu.channel_to_binString(channel)]) #factor of 10 time save B)
       timingRay+=[time.time()]
       self.allTriggers+=timestamps['channel 1']
       timingRay+=[time.time()]

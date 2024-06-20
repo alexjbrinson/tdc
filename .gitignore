@@ -3,3 +3,5 @@
 *.pkl
 *.csv
 *.pyc
+.cpython-311.pyc
+*.pyc

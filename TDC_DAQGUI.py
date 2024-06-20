@@ -30,16 +30,15 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     self.setWindowTitle('TDC GUI') ;#self.setWindowIcon(QIcon('TDC_Icon.png'))
     if settingsDic=={}:
       settingsDic={'int_time':100,
-                   'mode':'NIM',
-                   'threshold':-1.0,
+                   'mode':'TTL',
+                   'threshold':2.0,
                    'path':'../data/DummyData'}
 
     self.settingsDic=settingsDic
     self.settingsButton.clicked.connect(self.openSettingsWindow)
     
-    self.comPort='COM13' #TODO: Automate this
+    self.comPort='COM3' #TODO: Automate this
     self.realData=False; self.hasOldData=False
-
     try:
       self.device = TimeStampTDC1(self.comPort)
       self.deviceCommunication=True
@@ -89,8 +88,9 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     
     self.timer = QtCore.QTimer()
     self.timer.setInterval(100) #update time in ms
-    try: self.epicsDriver=tdcServer.Counter()
-    except Exception as e: print('wahhh!',e);# quit()
+    self.usingEpics=False #this is false unless the try below works
+    try: self.epicsDriver=tdcServer.Counter(); self.usingEpics=True
+    except Exception as e: print('wahhh!',e) ; self.usingEpics=False
     print('initialization end')
 
   def openSettingsWindow(self):
@@ -224,7 +224,7 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
       self.updatePlotTof_old()
 
   def endScan(self):
-    self.epicsDriver.stop()
+    if self.usingEpics: self.epicsDriver.stop()
     if self.deviceCommunication:
       self.device.stop_continuous_stream_timestamps_to_file()
     self.timer.stop()
@@ -255,8 +255,9 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
     if self.deviceCommunication:
       self.device.start_continuous_stream_timestamps_to_file(self.rawDataFile, self.dbName, self.scanNum, binRay=[self.tMinValue,self.tMaxValue,self.tBinsValue], int_time=self.int_time,
                                                                     totalToFs_targetFile=self.liveToFs_totals_File, latestToFs_targetFile=self.liveToFs_latest_File,timeStreamFile=self.timeStreamFile)
-    try:self.epicsDriver.start()
-    except Exception as e: print('wahhh!',e); self.safeExit(); #exit()
+    if self.usingEpics:
+      try:self.epicsDriver.start()
+      except Exception as e: print('wahhh!',e); self.safeExit(); #exit()
     self.realData = True
 
     self.timer.timeout.connect(self.updateEverything)
@@ -328,7 +329,7 @@ if __name__ == "__main__":
   #global settingsDic, app0, app1
   settingsDic={'int_time':500,
                'mode':'NIM',
-               'threshold':-0.25,
+               'threshold':-1.8,
                'path':'../data/RFQ Tests'}
   #TODO: make this initial setting window work without causing wack ass errors on main window closure.
   # app0 = QtWidgets.QApplication(sys.argv)
