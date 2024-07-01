@@ -388,8 +388,8 @@ class TimeStampTDC1(object):
       #print("self.prev_Time, self.pCount = ",self.prev_Time, self.pCount)
       timingRay+=[time.time()]
       if vocalMode: print("prev_Time=",self.prev_Time, "pCount=", self.pCount);
-      for channel in range(1, 5, 1):  timestamps["channel {}".format(channel)] += list(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])#this line is the bottle neck!
-      #for channel in range(1, 5, 1): timestamps["channel {}".format(channel)] += list(times[channels==tdcu.channel_to_binString(channel)]) #factor of 10 time save B)
+      #for channel in range(1, 5, 1):  timestamps["channel {}".format(channel)] += list(times[[int(ch, 2) & channel_to_pattern(channel) != 0 for ch in channels]])#this line is the bottle neck!
+      for channel in range(1, 5, 1): timestamps["channel {}".format(channel)] += list(times[channels==tdcu.channel_to_binString(channel)]) #factor of 10 time save B)
       timingRay+=[time.time()]
       self.allTriggers+=timestamps['channel 1']
       timingRay+=[time.time()]
@@ -461,7 +461,7 @@ class TimeStampTDC1(object):
         with open(self.liveTimeStreamFile,'wb') as file: pickle.dump(self.dicForTimeStream, file); file.close()
         with open(self.liveToFs_latest_File,'wb') as file: pickle.dump(self.dicForToF_latest, file); file.close()
         self.cleanDB = sl.connect(self.cleanDBname)
-        bufferFrame.to_sql('TDC', self.cleanDB, if_exists='append')
+        if len(list(bufferFrame.columns))>0: bufferFrame.to_sql('TDC', self.cleanDB, if_exists='append')
         #print(len(goodTimeStamps), 'event timestamps recorded in this buffer')
         print("We really out here", time.time())
 
@@ -528,7 +528,8 @@ class TimeStampTDC1(object):
         for i in range(1,5):
             print("channel%d had %d timestamps"%(i, len(timeStampsDic['channel '+str(i)])) )
         cleanFrame=tdcu.readAndParseScan(timeStampsDic, dropEnd=True, triggerChannel=1, run=self.run, t0=self.startTime)
-        cleanFrame.to_sql('TDC', self.cleanDB, if_exists='append')
+        if len(list(cleanFrame.columns))>0:
+            cleanFrame.to_sql('TDC', self.cleanDB, if_exists='append')
         
         
     def read_timestamps_bin(self, binary_stream):

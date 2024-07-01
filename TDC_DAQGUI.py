@@ -118,6 +118,7 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
         #self.device.int_time=self.int_time
         print('threshold = ',self.device.threshold)
         print('time?',self.device.int_time)
+        print('level?',self.device.level)
       except: print('this failed somehow pls investigate'); quit()
 
   def getScanNum(self):
