@@ -121,7 +121,7 @@ class TDC_GUI(QtWidgets.QMainWindow, Ui_MainWindow):
         print('level?',self.device.level)
       except: print('this failed somehow pls investigate'); quit()
 
-  def getScanNum(self):
+  def getScanNum(self):??
     self.previousScans=[]
     if not os.path.exists(self.scanDirectory):self.scanNum=1
     else:
